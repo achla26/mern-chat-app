@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from 'react-redux';
 import { login } from '../../redux/slices/user.slice';
-
+import { loginThunk } from "@/redux/thunks/user.thunk";
 const Login = ({ className, ...props }) => {
   const userData = useSelector(state=>state.user)
   // console.log(userData)
@@ -82,7 +82,7 @@ const Login = ({ className, ...props }) => {
                   onChange={handleFormData}
                 />
               </div>
-              <Button type="button" className="w-full" onClick={() => dispatch(login())}>
+              <Button type="button" className="w-full" onClick={() => dispatch(loginThunk())}>
                 Login
               </Button>
             </div>
