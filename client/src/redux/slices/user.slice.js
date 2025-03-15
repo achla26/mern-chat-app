@@ -2,8 +2,8 @@ import { createSlice } from "@reduxjs/toolkit";
 import { loginThunk } from "../thunks/user.thunk";
 
 const initialState = {
-  username: "",
-  password: "",
+  isAuthenticated: false,
+  screenLoading: false,
 };
 
 export const userSlice = createSlice({

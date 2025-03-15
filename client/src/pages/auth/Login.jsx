@@ -14,8 +14,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { login } from '../../redux/slices/user.slice';
 import { loginThunk } from "@/redux/thunks/user.thunk";
 const Login = ({ className, ...props }) => {
-  const userData = useSelector(state=>state.user)
-  // console.log(userData)
+  const { isAuthenticated } = useSelector(state=>state.user)
+  // console.log(isAuthenticated)
   const dispatch = useDispatch();
 
   const [loginData, setLoginData] = useState({
@@ -31,8 +31,8 @@ const Login = ({ className, ...props }) => {
 
   // Log the updated loginData using use-Effect
   useEffect(() => {
-    // console.log(loginData);
-  }, [loginData]); // Only log when loginData changes
+    dispatch(loginThunk());
+  }, []); // Only log when loginData changes
 
   return (
     <div
