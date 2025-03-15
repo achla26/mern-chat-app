@@ -10,8 +10,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from 'react-redux';
+import { login } from '../../redux/slices/user.slice';
 
 const Login = ({ className, ...props }) => {
+  const userData = useSelector(state=>state.user)
+  // console.log(userData)
+  const dispatch = useDispatch();
+
   const [loginData, setLoginData] = useState({
     username: "",
     password: "",
@@ -23,9 +29,9 @@ const Login = ({ className, ...props }) => {
     });
   };
 
-  // Log the updated loginData using useEffect
+  // Log the updated loginData using use-Effect
   useEffect(() => {
-    console.log(loginData);
+    // console.log(loginData);
   }, [loginData]); // Only log when loginData changes
 
   return (
@@ -76,7 +82,7 @@ const Login = ({ className, ...props }) => {
                   onChange={handleFormData}
                 />
               </div>
-              <Button type="submit" className="w-full">
+              <Button type="button" className="w-full" onClick={() => dispatch(login())}>
                 Login
               </Button>
             </div>
