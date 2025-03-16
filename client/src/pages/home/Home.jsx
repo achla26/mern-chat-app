@@ -8,9 +8,30 @@ function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   const chats = [
-    { id: 1, name: "Team Project", lastMessage: "Great work everyone!", timestamp: "10:30 AM", unread: 2 },
-    { id: 2, name: "Design Discussion", lastMessage: "Let's review the mockups", timestamp: "9:15 AM", unread: 0 },
-    { id: 3, name: "Marketing Team", lastMessage: "Campaign updates", timestamp: "Yesterday", unread: 5 },
+    { 
+      id: 1, 
+      name: "Team Project", 
+      lastMessage: "Great work everyone!", 
+      timestamp: "10:30 AM", 
+      unread: 2,
+      avatar: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=100&h=100&fit=crop&auto=format"
+    },
+    { 
+      id: 2, 
+      name: "Design Discussion", 
+      lastMessage: "Let's review the mockups", 
+      timestamp: "9:15 AM", 
+      unread: 0,
+      avatar: "https://images.unsplash.com/photo-1554774853-aae0a22c8aa4?w=100&h=100&fit=crop&auto=format"
+    },
+    { 
+      id: 3, 
+      name: "Marketing Team", 
+      lastMessage: "Campaign updates", 
+      timestamp: "Yesterday", 
+      unread: 5,
+      avatar: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=100&h=100&fit=crop&auto=format"
+    },
   ];
 
   const messages = [
@@ -65,5 +86,4 @@ function Home() {
     </div>
   );
 }
-
 export default Home;
