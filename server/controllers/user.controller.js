@@ -1,9 +1,10 @@
 import { validationResult } from "express-validator";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
-import { createUser , signIn ,blackListToken , getAllUsersService} from "../services/user.service.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
-// import redisClient from '../services/redis.service.js';
+import { createUserService , signInService ,blackListToken , getAllUsersService} from "../services/user.service.js";
+import { ApiResponse } from "../utils/ApiResponse.js"; 
+
+
 
 export const registerUser = asyncHandler(async (req, res, next) => {
     // Validate request body
@@ -13,11 +14,11 @@ export const registerUser = asyncHandler(async (req, res, next) => {
     }
 
     // Destructure request body
-    const { email, password } = req.body; 
+    const { fullName , email, password } = req.body; 
  
 
     // Create the user using the service
-    const newUser = await createUser(email, password);
+    const newUser = await createUserService(fullName, email, password);
 
     // Generate token if the user model supports it
     const token = newUser.generateAuthToken

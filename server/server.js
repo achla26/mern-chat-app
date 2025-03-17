@@ -1,19 +1,21 @@
 import 'dotenv/config';
-import app from "./app.js";
-import { Server } from "socket.io";
-import http from "http";
 
-const port = process.env.PORT || 3000;
+import dotenv from "dotenv"
+import  connectDB  from "./db/index.js"
+import app from './app.js'
 
-const server = http.createServer(app);
 
-const io = new Server(server,{
-    cors : {
-        origin : "*"
-    }
-});
- 
+connectDB()
+.then(()=>{
+    app.on("errror", (error) => {
+        console.log("ERRR: ", error);
+        throw error
+    }) 
 
-server.listen(port , ()=>{
-    console.log(`Server is running on ${port}`)
-});
+    app.listen(process.env.PORT || 8000, () => {
+        console.log(`Server is running at port : ${process.env.PORT}`);
+    })
+})
+.catch((err)=>{
+    console.log("MONGODB Connection FAILED ", err);
+})
