@@ -19,26 +19,25 @@ const generateAccessAndRefereshTokensService = async(userId) =>{
     }
 }
 
-export const createUserService = async (email, password) => {
+export const createUserService = async (fullName,email, password) => {
     try {
         if ([fullName, email, password].some((field) => !field?.trim())) {
             throw new ApiError(400, "All fields are required.");
         }
-
         const existingUser = await User.findOne({ email });
 
         if (existingUser) {
             throw new ApiError(409, "User with this email already exists.");
         }
 
-        const avatarLocalPath = req.files?.avatar[0]?.path;
+        // const avatarLocalPath = req.files?.avatar[0]?.path;
 
-        if(avatarLocalPath){
-            const avatar = await uploadOnCloudinary(avatarLocalPath);
-            if(!avatar){
-                throw new ApiError(400 , "Avatar file is required")
-           }
-        }
+        // if(avatarLocalPath){
+        //     const avatar = await uploadOnCloudinary(avatarLocalPath);
+        //     if(!avatar){
+        //         throw new ApiError(400 , "Avatar file is required")
+        //    }
+        // }
     
         
         // const hashedPassword = await User.hashedPassword(password); 
@@ -48,7 +47,7 @@ export const createUserService = async (email, password) => {
             fullName,
             email,
             password,
-            avatar: avatar.url ?? '',
+            // avatar: avatar.url ?? '',
         });
 
         const createdUser = await User.findById(user._id).select("-password -refreshToken");

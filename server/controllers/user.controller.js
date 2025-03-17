@@ -4,18 +4,16 @@ import { ApiError } from "../utils/ApiError.js";
 import { createUserService , signInService ,blackListToken , getAllUsersService} from "../services/user.service.js";
 import { ApiResponse } from "../utils/ApiResponse.js"; 
 
-
-
 export const registerUser = asyncHandler(async (req, res, next) => {
     // Validate request body
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+    if (!errors.isEmpty()) {        
+        const errorMessages = errors.array().map((error) => error.msg);
+        throw new ApiError(400, "Validation failed", errorMessages);
     }
 
     // Destructure request body
     const { fullName , email, password } = req.body; 
- 
 
     // Create the user using the service
     const newUser = await createUserService(fullName, email, password);

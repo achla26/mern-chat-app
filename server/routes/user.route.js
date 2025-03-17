@@ -6,10 +6,9 @@ import { authUser } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-router.get('/user', ()=>console.log("hello"))
-
 router.post('/register', [
-    body('email').isEmail().withMessage('Invalid Email'), 
+    body('fullName').notEmpty().withMessage('Name is required'),
+    body('email').isEmail().withMessage('Enter Valid Email'), 
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long')
 ],
     registerUser

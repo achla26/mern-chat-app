@@ -4,14 +4,6 @@ import bcrypt from "bcrypt";
 
 const userSchema = new mongoose.Schema(
     {
-        // userName: {
-        //     type: String,
-        //     required: true,
-        //     unique: true,
-        //     lowercase: true,
-        //     trim: true, 
-        //     index: true
-        // },
         email: {
             type: String,
             required: true,
@@ -27,15 +19,12 @@ const userSchema = new mongoose.Schema(
         },
         avatar: {
             type: String, // cloudinary url
-            required: true,
+            required: false,
         }, 
         password: {
             type: String,
             required: [true, 'Password is required']
-        },
-        refreshToken: {
-            type: String
-        },
+        }, 
         lastLogin: {
             type: Date,
             default: Date.now,
@@ -48,7 +37,6 @@ const userSchema = new mongoose.Schema(
         resetPasswordExpiresAt: Date,
         verificationToken: String,
         verificationTokenExpiresAt: Date,
-
     },
     {
         timestamps: true
@@ -71,8 +59,7 @@ userSchema.methods.generateAccessToken = function(){
     return jwt.sign(
         {
             _id:this._id,
-            email:this.email,
-            username:this.username,
+            email:this.email, 
             fullName:this.fullName
         },
         process.env.ACCESS_TOKEN_SECRET,
