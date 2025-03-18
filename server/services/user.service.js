@@ -1,25 +1,15 @@
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { blacklistTokenModel } from "../models/blacklistToken.model.js";
-import { sendVerificationEmail } from '../mail/emails.js';
-
-const generatTokenService = async (userId) => {
-  try {
-    const user = await User.findById(userId);
-    const accessToken = user.generateAccessToken();
-    await user.save({ validateBeforeSave: false });
-
-    return { accessToken };
-  } catch (error) {
-    throw new ApiError(500, "Somthing Went Wrong");
-  }
-};
+import { sendVerificationEmail, OTPAttempt } from "../mail/emails.js";
+import { sendToken } from "../utils/SendToken.js";
 
 export const createUserService = async (name, email, password) => {
   try {
     if ([name, email, password].some((field) => !field?.trim())) {
       throw new ApiError(400, "All fields are required.");
     }
+
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
@@ -27,7 +17,6 @@ export const createUserService = async (name, email, password) => {
     }
 
     // const avatarLocalPath = req.files?.avatar[0]?.path;
-
     // if(avatarLocalPath){
     //     const avatar = await uploadOnCloudinary(avatarLocalPath);
     //     if(!avatar){
@@ -37,30 +26,71 @@ export const createUserService = async (name, email, password) => {
 
     const userData = {
       name,
-      email, 
+      email,
       password,
     };
-    const user = await User.create(userData);
+
+    const user = await User.create(userData); 
 
     const verificationCode = await user.generateVerificationCode();
 
-    await user.save();     
+    await user.save();
 
-    //await sendVerificationEmail(user.email , verificationCode);  # TO DO : UNCOMMENT IN PRODUCTION
-
-    const createdUser = await User.findById(user._id);
-
-    if (!createdUser) {
-      throw new ApiError(500, "Error while fetching created user.");
-    }
-
-    return createdUser;
+    if (await OTPAttempt(user)) {
+      //await sendVerificationEmail(user.email , verificationCode);  # TO DO : UNCOMMENT IN PRODUCTION
+    } else {
+      throw new ApiError(500, "Too many attempts, please try again later.");
+    } 
+    return user;
   } catch (error) {
     throw error;
   }
 };
- 
 
+export const verifyOTPService = async (email , otp) => {
+  try {
+    // console.log(otp , email)
+    if ([otp, email].some((field) => !field?.trim())) {
+      throw new ApiError(400, "All fields are required.");
+    }
+    const user = await User.findOne({ email ,  isVerified: false});
+
+    if (!user) {
+      throw new ApiError(400, "User Not Found"); 
+    }
+
+    if (user.verificationCode !== Number(otp)) {
+      throw new ApiError(400,"Invalid OTP.");
+    }
+
+    const currentTime = Date.now();
+
+    const verificationCodeExpire = new Date(
+      user.verificationCodeExpire
+    ).getTime(); 
+
+    if (currentTime > verificationCodeExpire) {
+      throw new ApiError(400,"OTP Expired.");
+    }
+
+    const {
+        token,  
+        options
+    } = await sendToken(user);
+
+    user.isVerified = true;
+    user.verificationCode = null;
+    user.verificationCodeExpire = null;
+    user.token = token;
+    
+    await user.save({ validateModifiedOnly: true });
+
+    return {token,  options};
+  
+  } catch (error) {
+    throw error; 
+  }
+};
 export const signInService = async (email, password) => {
   try {
     if ([email, password].some((field) => !field?.trim())) {

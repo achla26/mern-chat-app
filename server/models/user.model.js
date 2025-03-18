@@ -31,10 +31,15 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    otpAttempts: {
+      count: { type: Number, default: 0 },
+      lastAttempt: { type: Date },
+    },
     isVerified: {
       type: Boolean,
       default: false,
     },
+    token:String,
     verificationCode: Number,
     resetPasswordToken: String,
     resetPasswordExpiresAt: Date,
@@ -62,9 +67,9 @@ userSchema.methods.generateAccessToken = function () {
     {
       _id: this._id,
     },
-    process.env.JWT_SECRET_KEY,
+    process.env.JWT_ACCESS_TOKEN_SECRET,
     {
-      expiresIn: process.env.JWT_EXPIRE,
+      expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRY,
     }
   );
 };

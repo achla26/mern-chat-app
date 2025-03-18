@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { body } from "express-validator";
-import { registerUser , loginUser , getUserProfile , logoutUser , getAllUsers} from "../controllers/user.controller.js";
+import { registerUser , verifyOTP,loginUser , getUserProfile , logoutUser , getAllUsers} from "../controllers/user.controller.js";
 import { authUser } from "../middlewares/auth.middleware.js";
 
 
@@ -13,6 +13,12 @@ router.post('/register', [
 ],
     registerUser
 );
+
+
+router.post("/otp-verification",[
+    body('otp').notEmpty().withMessage('OTP is required'),
+    body('email').isEmail().withMessage('Enter Valid Email'),  
+] ,verifyOTP);
 
 router.post('/login', [
     body('email').isEmail().withMessage('Invalid Email'),
