@@ -1,84 +1,101 @@
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import crypto from 'crypto';
 
 const userSchema = new mongoose.Schema(
-    {
-        email: {
-            type: String,
-            required: true,
-            unique: true,
-            lowecase: true,
-            trim: true, 
-        },
-        fullName: {
-            type: String,
-            required: true,
-            trim: true, 
-            index: true
-        },
-        avatar: {
-            type: String, // cloudinary url
-            required: false,
-        }, 
-        password: {
-            type: String,
-            required: [true, 'Password is required']
-        }, 
-        lastLogin: {
-            type: Date,
-            default: Date.now,
-        },
-        isVerified: {
-            type: Boolean,
-            default: false,
-        },
-        resetPasswordToken: String,
-        resetPasswordExpiresAt: Date,
-        verificationToken: String,
-        verificationTokenExpiresAt: Date,
+  {
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowecase: true,
+      trim: true,
     },
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+      index: true,
+    },
+    avatar: {
+      type: String, // cloudinary url
+      required: false,
+    },
+    password: {
+      type: String,
+      required: [true, "Password is required"], 
+      select: false, 
+    },
+    lastLogin: {
+      type: Date,
+      default: Date.now,
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verificationCode: Number,
+    resetPasswordToken: String,
+    resetPasswordExpiresAt: Date,
+    verificationToken: String,
+    verificationTokenExpiresAt: Date,
+  },
+  {
+    timestamps: true,
+  }
+);
+
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
+});
+
+userSchema.methods.comparePassword = async function (password) {
+  return await bcrypt.compare(password, this.password);
+};
+
+userSchema.methods.generateAccessToken = function () {
+  return jwt.sign(
     {
-        timestamps: true
+      _id: this._id,
+    },
+    process.env.JWT_SECRET_KEY,
+    {
+      expiresIn: process.env.JWT_EXPIRE,
     }
-)
+  );
+};
+ 
+userSchema.methods.generateVerificationCode = function () {
+  function generateRandomFiveDigitNumber() {
+    const firstDigit = Math.floor(Math.random() * 9) + 1;
+    const remainingDigits = Math.floor(Math.random() * 10000)
+      .toString()
+      .padStart(4, 0);
 
-userSchema.pre("save" , async function(next){
-    if(!this.isModified('password')) return next();
+    return parseInt(firstDigit + remainingDigits);
+  }
+  const verificationCode = generateRandomFiveDigitNumber();
+  this.verificationCode = verificationCode;
+  this.verificationCodeExpire = Date.now() + 10 * 60 * 1000;
 
-    this.password = await bcrypt.hash(this.password , 10)
-    next()
-})
+  return verificationCode;
+};
 
-userSchema.methods.isPasswordCorrect =  async function(password){
-    return await bcrypt.compare(password ,  this.password)
-}
+userSchema.methods.generateResetPasswordToken = function () {
+  const resetToken = crypto.randomBytes(20).toString("hex");
 
+  this.resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
 
-userSchema.methods.generateAccessToken = function(){
-    return jwt.sign(
-        {
-            _id:this._id,
-            email:this.email, 
-            fullName:this.fullName
-        },
-        process.env.ACCESS_TOKEN_SECRET,
-        {
-            expiresIn: process.env.ACCESS_TOKEN_EXPIRY
-        }
-    )
-}
+  this.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
 
-userSchema.methods.generateRefreshToken = function(){
-    return jwt.sign(
-        {
-            _id:this._id
-        },
-        process.env.REFRESH_TOKEN_SECRET,
-        {
-            expiresIn: process.env.REFRESH_TOKEN_EXPIRY
-        }
-    )
-}
+  return resetToken;
+};
 
-export const User = mongoose.model("user" , userSchema)
+export const User = mongoose.model("user", userSchema);

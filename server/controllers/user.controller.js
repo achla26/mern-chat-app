@@ -1,29 +1,20 @@
-import { validationResult } from "express-validator";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiError } from "../utils/ApiError.js";
+// import { ApiError } from "../utils/ApiError.js";
+import  ErrorValidation  from "../utils/ErrorValidation.js";
 import { createUserService , signInService ,blackListToken , getAllUsersService} from "../services/user.service.js";
 import { ApiResponse } from "../utils/ApiResponse.js"; 
 
-export const registerUser = asyncHandler(async (req, res, next) => {
-    // Validate request body
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {        
-        const errorMessages = errors.array().map((error) => error.msg);
-        throw new ApiError(400, "Validation failed", errorMessages);
-    }
-
-    // Destructure request body
-    const { fullName , email, password } = req.body; 
-
-    // Create the user using the service
-    const newUser = await createUserService(fullName, email, password);
-
-    // Generate token if the user model supports it
+export const registerUser = asyncHandler(async (req, res, next) => { 
+    ErrorValidation(req);
+ 
+    const { name , email, password } = req.body; 
+ 
+    const newUser = await createUserService(name, email, password);
+ 
     const token = newUser.generateAuthToken
         ? newUser.generateAuthToken()
-        : null; // Ensure generateAuthToken exists on the model
-
-    // Send response
+        : null;       
+ 
     return res
         .status(201)
         .json(
