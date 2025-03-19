@@ -1,6 +1,6 @@
 import { User } from "../models/user.model.js";
-import { ApiError } from "../utils/ApiError.js"; 
-import { sendVerificationEmail, OTPAttempt } from "../mail/emails.js";
+import { ApiError } from "../utils/ApiError.js";
+import { sendVerificationEmail, OTPAttempt , sendPasswordResetEmail} from "../mail/emails.js";
 import { sendToken } from "../utils/SendToken.js";
 
 export const signUpService = async (name, email, password) => {
@@ -48,7 +48,7 @@ export const signUpService = async (name, email, password) => {
 };
 
 export const verifyOTPService = async (email, otp) => {
-  try { 
+  try {
     if ([otp, email].some((field) => !field?.trim())) {
       throw new ApiError(400, "All fields are required.");
     }
@@ -97,7 +97,7 @@ export const signInService = async (email, password) => {
 
     if (!user) {
       throw new ApiError(400, "User does not exist.");
-    } 
+    }
 
     if (!user.isVerified) {
       throw new ApiError(400, "User is not verified.");
@@ -115,11 +115,10 @@ export const signInService = async (email, password) => {
     await user.save();
 
     return { user, token, options };
-  } catch (error) { 
+  } catch (error) {
     throw error;
   }
 };
-
 
 export const resendOtpService = async (email) => {
   try {
@@ -132,13 +131,13 @@ export const resendOtpService = async (email) => {
     if (!user) {
       throw new ApiError(409, "User does not exists.");
     }
-   
+
     const verificationCode = await user.generateVerificationCode();
 
     user.verificationCode = verificationCode;
     user.verificationCodeExpiresAtsAt = Date.now() + 10 * 60 * 1000;
 
-    await user.save({validateModifiedOnly: true });
+    await user.save({ validateModifiedOnly: true });
 
     if (await OTPAttempt(user)) {
       //await sendVerificationEmail(user.email , verificationCode);  # TO DO : UNCOMMENT IN PRODUCTION
@@ -149,7 +148,7 @@ export const resendOtpService = async (email) => {
   } catch (error) {
     throw error;
   }
-}; 
+};
 
 export const getAllUsersService = async (userId) => {
   try {
@@ -161,6 +160,35 @@ export const getAllUsersService = async (userId) => {
     }
     return users;
   } catch (error) {
+    throw error;
+  }
+};
+
+export const forgotPasswordService = async (email) => {
+  try {
+    if ([email].some((field) => !field?.trim())) {
+      throw new ApiError(400, "All fields are required.");
+    }
+
+    const user = await User.findOne({ email, isVerified: true });
+
+    if (!user) {
+      throw new ApiError(400, "User does not exist.");
+    }
+
+    const resetToken = user.generateResetPasswordToken();
+
+    const resetTokenExpiresAt = Date.now() + 1 * 60 * 60 * 1000; // 1 hour
+
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpiresAt = resetTokenExpiresAt;
+    await user.save({ validateBeforeSave: false });
+    const resetPasswordUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+    await sendPasswordResetEmail(user.email , `${resetPasswordUrl}`);  // TO DO : UNCOMMENT IN PRODUCTION  
+    
+    return {resetPasswordUrl};
+  } catch (error) { 
     throw error;
   }
 };

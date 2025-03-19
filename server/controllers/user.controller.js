@@ -4,9 +4,10 @@ import ErrorValidation from "../utils/ErrorValidation.js";
 import {
   signUpService,
   verifyOTPService,
-  signInService, 
+  signInService,
   getAllUsersService,
-  resendOtpService
+  resendOtpService,
+  forgotPasswordService,
 } from "../services/user.service.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
@@ -37,25 +38,24 @@ export const verifyOTP = asyncHandler(async (req, res, next) => {
     .json(new ApiResponse(201, { token, user }, "User Login successfully."));
 });
 
-
 export const resendOTP = asyncHandler(async (req, res, next) => {
-    ErrorValidation(req);
-  
-    const { email } = req.body;
-   
-    const data = await resendOtpService(email);
-  
-    return res
-      .status(201) 
-      .json(new ApiResponse(201, { data }, "Otp Sent successfully."));
-  });
+  ErrorValidation(req);
+
+  const { email } = req.body;
+
+  const data = await resendOtpService(email);
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, { data }, "Otp Sent successfully."));
+});
 
 export const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
   ErrorValidation(req);
 
-  const  { token, user, options }  = await signInService(email, password); 
+  const { token, user, options } = await signInService(email, password);
 
   return res
     .status(201)
@@ -70,14 +70,14 @@ export const getUserProfile = asyncHandler(async (req, res) => {
 });
 
 export const logoutUser = asyncHandler(async (req, res) => {
-  const token =  req.cookies.token || req.headers.authorization?.replace("Bearer ", ""); 
- 
+  const token =
+    req.cookies.token || req.headers.authorization?.replace("Bearer ", "");
 
   return res
     .status(200)
     .clearCookie("token")
     .json(new ApiResponse(200, "User Logged Out successfully"));
-}); 
+});
 
 export const getAllUsers = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
@@ -89,4 +89,21 @@ export const getAllUsers = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, allUsers, "All Users fetched successfully"));
+});
+
+export const forgotPassword = asyncHandler(async (req, res, next) => {
+  const { email} = req.body;
+
+  ErrorValidation(req);
+
+  const { resetPasswordUrl } = await forgotPasswordService(email);
+  return res
+    .status(201)
+    .json(
+      new ApiResponse(
+        201,
+        { resetPasswordUrl },
+        "Password reset link sent to your email"
+      )
+    );
 });
