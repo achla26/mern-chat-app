@@ -8,6 +8,7 @@ import {
   getAllUsersService,
   resendOtpService,
   forgotPasswordService,
+  resetPasswordService,
 } from "../services/user.service.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
@@ -92,7 +93,7 @@ export const getAllUsers = asyncHandler(async (req, res) => {
 });
 
 export const forgotPassword = asyncHandler(async (req, res, next) => {
-  const { email} = req.body;
+  const { email } = req.body;
 
   ErrorValidation(req);
 
@@ -106,4 +107,22 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
         "Password reset link sent to your email"
       )
     );
+});
+
+export const resetPassword = asyncHandler(async (req, res, next) => {
+  const { password, confirmPassword } = req.body;
+  const { token } = req.params; 
+
+  ErrorValidation(req);
+
+  if (await resetPasswordService(token, password, confirmPassword))
+    return res
+      .status(201)
+      .json(
+        new ApiResponse(
+          201,
+          {},
+          "Password reset successfully"
+        )
+      );
 });

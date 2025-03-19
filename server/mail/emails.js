@@ -77,8 +77,6 @@ export const sendWelcomeEmail = async (email, name) => {
 };
 
 export const sendPasswordResetEmail = async (email, resetURL) => {
-  const recipient = [{ email }];
-
   try {
     const htmlContent = PASSWORD_RESET_REQUEST_TEMPLATE.replace(
       "{resetURL}",
@@ -103,21 +101,20 @@ export const sendPasswordResetEmail = async (email, resetURL) => {
 };
 
 export const sendResetSuccessEmail = async (email) => {
-  const recipient = [{ email }];
-
   try {
-    const response = await mailClient.send({
+    const htmlContent = PASSWORD_RESET_SUCCESS_TEMPLATE;
+
+    let info = await mailClient.sendMail({
       from: sender,
-      to: recipient,
+      to: email,
       subject: "Password Reset Successful",
-      html: PASSWORD_RESET_SUCCESS_TEMPLATE,
-      category: "Password Reset",
+      html: htmlContent, 
     });
-
-    console.log("Password reset email sent successfully", response);
-  } catch (error) {
-    console.error(`Error sending password reset success email`, error);
-
-    throw new Error(`Error sending password reset success email: ${error}`);
+    console.log("Password reset email sent successfully", info.messageId);
+  } catch (error) { 
+    throw new ApiError(
+      500,
+      `Error sending password reset success email: ${error.message}`
+    );
   }
 };

@@ -6,6 +6,7 @@ import {
   loginUser,
   resendOTP,
   forgotPassword,
+  resetPassword,
   getUserProfile,
   logoutUser,
   getAllUsers,
@@ -56,6 +57,23 @@ router.post(
   "/forgot-password",
   [body("email").isEmail().trim().withMessage("Invalid Email")],
   forgotPassword
+);
+
+router.post(
+  "/reset-password/:token",
+  [
+    body("password")
+    .notEmpty()
+    .withMessage("Password is required")
+    .isLength({ min: 6 })
+    .withMessage("Password must be at least 6 characters long"),
+  body("confirmPassword")
+    .notEmpty()
+    .withMessage("Confirm Password is required")
+    .custom((value, { req }) => value === req.body.password)
+    .withMessage("Passwords do not match"), 
+  ],
+  resetPassword
 );
 
 router.get("/profile", isUserAuthenticated, getUserProfile);

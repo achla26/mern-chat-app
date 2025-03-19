@@ -1,8 +1,13 @@
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
-import { sendVerificationEmail, OTPAttempt , sendPasswordResetEmail} from "../mail/emails.js";
+import {
+  sendVerificationEmail,
+  OTPAttempt,
+  sendPasswordResetEmail,
+  sendResetSuccessEmail,
+} from "../mail/emails.js";
 import { sendToken } from "../utils/SendToken.js";
-
+import crypto from "crypto";
 export const signUpService = async (name, email, password) => {
   try {
     if ([name, email, password].some((field) => !field?.trim())) {
@@ -177,18 +182,49 @@ export const forgotPasswordService = async (email) => {
     }
 
     const resetToken = user.generateResetPasswordToken();
-
-    const resetTokenExpiresAt = Date.now() + 1 * 60 * 60 * 1000; // 1 hour
-
-    user.resetPasswordToken = resetToken;
-    user.resetPasswordExpiresAt = resetTokenExpiresAt;
     await user.save({ validateBeforeSave: false });
     const resetPasswordUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
-    await sendPasswordResetEmail(user.email , `${resetPasswordUrl}`);  // TO DO : UNCOMMENT IN PRODUCTION  
-    
-    return {resetPasswordUrl};
-  } catch (error) { 
+    // await sendPasswordResetEmail(user.email , `${resetPasswordUrl}`);  // TO DO : UNCOMMENT IN PRODUCTION
+
+    return { resetPasswordUrl };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const resetPasswordService = async (token,password,confirmPassword) => {
+  try {
+    if ([token, password, confirmPassword].some((field) => !field?.trim())) {
+      throw new ApiError(400, "All fields are required.");
+    } 
+
+    console.log("p Token "+token) 
+
+    const passwordToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+      resetPasswordToken: passwordToken,
+      resetPasswordExpiresAt: { $gt: Date.now() },
+    }); 
+
+    if (!user) {
+      throw new ApiError(400, "Reset token is invalid or has been expired.");
+    }
+
+    if (password !== confirmPassword) {
+      throw new ApiError(400, "Password & confirm password do not match.");
+    }
+
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpiresAt = undefined;
+    await user.save();
+
+    // await sendResetSuccessEmail(user.email);  // TO DO : UNCOMMENT IN PRODUCTION
+
+    return true;
+  } catch (error) {
     throw error;
   }
 };

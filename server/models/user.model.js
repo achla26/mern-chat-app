@@ -91,13 +91,16 @@ userSchema.methods.generateVerificationCode = function () {
 
 userSchema.methods.generateResetPasswordToken = function () {
   const resetToken = crypto.randomBytes(20).toString("hex");
-
+  console.log("resetToken "+resetToken)
   this.resetPasswordToken = crypto
     .createHash("sha256")
     .update(resetToken)
     .digest("hex");
 
-  this.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
+  console.log("this.resetPasswordToken  "+this.resetPasswordToken )
+
+
+  this.resetPasswordExpiresAt = Date.now() + 15 * 60 * 1000;
 
   return resetToken;
 };
