@@ -31,11 +31,10 @@ export const verifyOTP = asyncHandler(async (req, res, next) => {
 
   const { email, otp } = req.body;
 
-  const { token, user, options } = await verifyOTPService(email, otp);
+  const { token, user } = await verifyOTPService(email, otp , res);
 
   return res
-    .status(201)
-    .cookie("token", token, options)
+    .status(201) 
     .json(new ApiResponse(201, { token, user }, "User Login successfully."));
 });
 
@@ -56,11 +55,10 @@ export const loginUser = asyncHandler(async (req, res) => {
 
   ErrorValidation(req);
 
-  const { token, user, options } = await signInService(email, password);
+  const { token, user } = await signInService(email, password , res );
 
   return res
-    .status(201)
-    .cookie("token", token, options)
+    .status(201) 
     .json(new ApiResponse(201, { token, user }, "User Login successfully."));
 });
 

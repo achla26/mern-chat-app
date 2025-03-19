@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import crypto from 'crypto';
 
@@ -11,6 +10,7 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowecase: true,
       trim: true,
+      match: [/.+@.+\..+/, 'Please enter a valid email address'],
     },
     name: {
       type: String,
@@ -18,9 +18,8 @@ const userSchema = new mongoose.Schema(
       trim: true,
       index: true,
     },
-    avatar: {
-      type: String, // cloudinary url
-      required: false,
+    profilePicture: {
+      type: String,  
     },
     password: {
       type: String,
@@ -59,18 +58,6 @@ userSchema.pre("save", async function (next) {
 
 userSchema.methods.comparePassword = async function (password) {
   return await bcrypt.compare(password, this.password);
-};
-
-userSchema.methods.generateAccessToken = function () {
-  return jwt.sign(
-    {
-      _id: this._id,
-    },
-    process.env.JWT_ACCESS_TOKEN_SECRET,
-    {
-      expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRY,
-    }
-  );
 };
  
 userSchema.methods.generateVerificationCode = function () {

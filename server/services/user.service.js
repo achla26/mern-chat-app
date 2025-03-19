@@ -6,7 +6,7 @@ import {
   sendPasswordResetEmail,
   sendResetSuccessEmail,
 } from "../mail/emails.js";
-import { sendToken } from "../utils/SendToken.js";
+import { generateToken } from "../utils/generateToken.js";
 import crypto from "crypto";
 export const signUpService = async (name, email, password) => {
   try {
@@ -52,7 +52,7 @@ export const signUpService = async (name, email, password) => {
   }
 };
 
-export const verifyOTPService = async (email, otp) => {
+export const verifyOTPService = async (email, otp , res) => {
   try {
     if ([otp, email].some((field) => !field?.trim())) {
       throw new ApiError(400, "All fields are required.");
@@ -77,7 +77,7 @@ export const verifyOTPService = async (email, otp) => {
       throw new ApiError(400, "OTP Expired.");
     }
 
-    const { token, options } = await sendToken(user);
+    const { token } = await generateToken(user._id , res);
 
     user.isVerified = true;
     user.verificationCode = null;
@@ -86,13 +86,13 @@ export const verifyOTPService = async (email, otp) => {
 
     user = await user.save({ validateModifiedOnly: true });
 
-    return { user, token, options };
+    return { user, token };
   } catch (error) {
     throw error;
   }
 };
 
-export const signInService = async (email, password) => {
+export const signInService = async (email, password , res) => {
   try {
     if ([email, password].some((field) => !field?.trim())) {
       throw new ApiError(400, "All fields are required.");
@@ -114,12 +114,12 @@ export const signInService = async (email, password) => {
       throw new ApiError(401, "Invalid User Credentials.");
     }
 
-    const { token, options } = await sendToken(user);
+    const { token } = await generateToken(user._id , res );
 
     user.lastLogin = new Date();
     await user.save();
 
-    return { user, token, options };
+    return { user, token };
   } catch (error) {
     throw error;
   }
