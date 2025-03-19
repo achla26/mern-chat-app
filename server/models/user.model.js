@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema(
     },
     otpAttempts: {
       count: { type: Number, default: 0 },
-      lastAttempt: { type: Date },
+      lastAttempt: { type: Date , default: Date.now},
     },
     isVerified: {
       type: Boolean,
@@ -41,10 +41,9 @@ const userSchema = new mongoose.Schema(
     },
     token:String,
     verificationCode: Number,
+    verificationCodeExpiresAt: Date,
     resetPasswordToken: String,
-    resetPasswordExpiresAt: Date,
-    verificationToken: String,
-    verificationTokenExpiresAt: Date,
+    resetPasswordExpiresAt: Date, 
   },
   {
     timestamps: true,

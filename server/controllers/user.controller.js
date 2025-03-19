@@ -2,86 +2,65 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 // import { ApiError } from "../utils/ApiError.js";
 import ErrorValidation from "../utils/ErrorValidation.js";
 import {
-  createUserService,
+  signUpService,
   verifyOTPService,
-  signInService,
-  blackListToken,
+  signInService, 
   getAllUsersService,
+  resendOtpService
 } from "../services/user.service.js";
-import { ApiResponse } from "../utils/ApiResponse.js"; 
+import { ApiResponse } from "../utils/ApiResponse.js";
 
 export const registerUser = asyncHandler(async (req, res, next) => {
   ErrorValidation(req);
 
   const { name, email, password } = req.body;
 
-  const newUser = await createUserService(name, email, password);
+  const newUser = await signUpService(name, email, password);
 
   return res
     .status(201)
     .json(
-      new ApiResponse(
-        201,
-        { user: newUser, token },
-        "User registered successfully."
-      )
+      new ApiResponse(201, { user: newUser }, "User registered successfully.")
     );
 });
 
 export const verifyOTP = asyncHandler(async (req, res, next) => {
-  ErrorValidation(req); 
+  ErrorValidation(req);
 
   const { email, otp } = req.body;
 
-  const  {token,  options} = await verifyOTPService(email, otp);
-
-  res.cookie("token", token,  options);
+  const { token, user, options } = await verifyOTPService(email, otp);
 
   return res
     .status(201)
-    .json(
-      new ApiResponse(
-        201,
-        { token },
-        "User Login successfully."
-      )
-    );
+    .cookie("token", token, options)
+    .json(new ApiResponse(201, { token, user }, "User Login successfully."));
 });
+
+
+export const resendOTP = asyncHandler(async (req, res, next) => {
+    ErrorValidation(req);
+  
+    const { email } = req.body;
+   
+    const data = await resendOtpService(email);
+  
+    return res
+      .status(201) 
+      .json(new ApiResponse(201, { data }, "Otp Sent successfully."));
+  });
 
 export const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
+  ErrorValidation(req);
 
-  const loggedInUser = await signIn(email, password);
-
-  const token = loggedInUser.generateAuthToken();
-
-  delete loggedInUser._doc.password;
-
-  res.cookie("token", token);
-
-  // const options = {
-  //     httpOnly: true,
-  //     secure: true
-  // }
+  const  { token, user, options }  = await signInService(email, password); 
 
   return res
-    .status(200)
-    .cookie("token", token)
-    .json(
-      new ApiResponse(
-        200,
-        {
-          user: loggedInUser,
-          token,
-        },
-        "User logged In Successfully"
-      )
-    );
+    .status(201)
+    .cookie("token", token, options)
+    .json(new ApiResponse(201, { token, user }, "User Login successfully."));
 });
 
 export const getUserProfile = asyncHandler(async (req, res) => {
@@ -91,17 +70,14 @@ export const getUserProfile = asyncHandler(async (req, res) => {
 });
 
 export const logoutUser = asyncHandler(async (req, res) => {
-  const token =
-    req.cookies.token || req.headers.authorization?.replace("Bearer ", "");
-
-  await blackListToken(token);
-
-  res.clearCookie("token");
+  const token =  req.cookies.token || req.headers.authorization?.replace("Bearer ", ""); 
+ 
 
   return res
     .status(200)
+    .clearCookie("token")
     .json(new ApiResponse(200, "User Logged Out successfully"));
-});
+}); 
 
 export const getAllUsers = asyncHandler(async (req, res) => {
   const userId = req.user?._id;

@@ -12,8 +12,8 @@ export const OTPAttempt = (user) => {
 	const LOCK_TIME = 60 * 60 * 1000; // 1 hour in milliseconds
   
 	const currentTime = new Date();
-
-	user.otpAttempts.count += 1;
+ 
+	  user.otpAttempts.count += 1;
     user.otpAttempts.lastAttempt = currentTime;
 	
 	const timeSinceLastAttempt = currentTime - new Date(user.otpAttempts.lastAttempt);
@@ -22,8 +22,9 @@ export const OTPAttempt = (user) => {
 	  return false;  // Exceeded attempts within the lock time
 	} else if (timeSinceLastAttempt >= LOCK_TIME) {
 	  user.otpAttempts.count = 0;  // Reset attempts after 1 hour
-	  user.save(); // Optionally save the reset data
 	}
+  user.save(); 
+
 	return true;  // Proceed with OTP sending
   };
   

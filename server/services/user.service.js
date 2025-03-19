@@ -1,10 +1,9 @@
 import { User } from "../models/user.model.js";
-import { ApiError } from "../utils/ApiError.js";
-import { blacklistTokenModel } from "../models/blacklistToken.model.js";
+import { ApiError } from "../utils/ApiError.js"; 
 import { sendVerificationEmail, OTPAttempt } from "../mail/emails.js";
 import { sendToken } from "../utils/SendToken.js";
 
-export const createUserService = async (name, email, password) => {
+export const signUpService = async (name, email, password) => {
   try {
     if ([name, email, password].some((field) => !field?.trim())) {
       throw new ApiError(400, "All fields are required.");
@@ -28,9 +27,10 @@ export const createUserService = async (name, email, password) => {
       name,
       email,
       password,
+      verificationCodeExpiresAt: Date.now() + 10 * 60 * 1000, // 24 hours
     };
 
-    const user = await User.create(userData); 
+    const user = await User.create(userData);
 
     const verificationCode = await user.generateVerificationCode();
 
@@ -40,57 +40,53 @@ export const createUserService = async (name, email, password) => {
       //await sendVerificationEmail(user.email , verificationCode);  # TO DO : UNCOMMENT IN PRODUCTION
     } else {
       throw new ApiError(500, "Too many attempts, please try again later.");
-    } 
+    }
     return user;
   } catch (error) {
     throw error;
   }
 };
 
-export const verifyOTPService = async (email , otp) => {
-  try {
-    // console.log(otp , email)
+export const verifyOTPService = async (email, otp) => {
+  try { 
     if ([otp, email].some((field) => !field?.trim())) {
       throw new ApiError(400, "All fields are required.");
     }
-    const user = await User.findOne({ email ,  isVerified: false});
+    let user = await User.findOne({ email, isVerified: false });
 
     if (!user) {
-      throw new ApiError(400, "User Not Found"); 
+      throw new ApiError(400, "User Not Found");
     }
 
     if (user.verificationCode !== Number(otp)) {
-      throw new ApiError(400,"Invalid OTP.");
+      throw new ApiError(400, "Invalid OTP.");
     }
 
     const currentTime = Date.now();
 
-    const verificationCodeExpire = new Date(
-      user.verificationCodeExpire
-    ).getTime(); 
+    const verificationCodeExpiresAt = new Date(
+      user.verificationCodeExpiresAt
+    ).getTime();
 
-    if (currentTime > verificationCodeExpire) {
-      throw new ApiError(400,"OTP Expired.");
+    if (currentTime > verificationCodeExpiresAt) {
+      throw new ApiError(400, "OTP Expired.");
     }
 
-    const {
-        token,  
-        options
-    } = await sendToken(user);
+    const { token, options } = await sendToken(user);
 
     user.isVerified = true;
     user.verificationCode = null;
-    user.verificationCodeExpire = null;
+    user.verificationCodeExpiresAtsAt = null;
     user.token = token;
-    
-    await user.save({ validateModifiedOnly: true });
 
-    return {token,  options};
-  
+    user = await user.save({ validateModifiedOnly: true });
+
+    return { user, token, options };
   } catch (error) {
-    throw error; 
+    throw error;
   }
 };
+
 export const signInService = async (email, password) => {
   try {
     if ([email, password].some((field) => !field?.trim())) {
@@ -101,6 +97,10 @@ export const signInService = async (email, password) => {
 
     if (!user) {
       throw new ApiError(400, "User does not exist.");
+    } 
+
+    if (!user.isVerified) {
+      throw new ApiError(400, "User is not verified.");
     }
 
     const isPasswordValid = await user.comparePassword(password);
@@ -109,20 +109,47 @@ export const signInService = async (email, password) => {
       throw new ApiError(401, "Invalid User Credentials.");
     }
 
-    return user;
-  } catch (error) {
-    // Re-throw the error to let the controller handle it
+    const { token, options } = await sendToken(user);
+
+    user.lastLogin = new Date();
+    await user.save();
+
+    return { user, token, options };
+  } catch (error) { 
     throw error;
   }
 };
 
-export const blackListToken = async (token) => {
-  await blacklistTokenModel.findOneAndUpdate(
-    { token }, // Find token in the database
-    { token }, // Update or insert token
-    { upsert: true, new: true } // Create if it doesn't exist
-  );
-};
+
+export const resendOtpService = async (email) => {
+  try {
+    if ([email].some((field) => !field?.trim())) {
+      throw new ApiError(400, "All fields are required.");
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      throw new ApiError(409, "User does not exists.");
+    }
+   
+    const verificationCode = await user.generateVerificationCode();
+
+    user.verificationCode = verificationCode;
+    user.verificationCodeExpiresAtsAt = Date.now() + 10 * 60 * 1000;
+
+    await user.save({validateModifiedOnly: true });
+
+    if (await OTPAttempt(user)) {
+      //await sendVerificationEmail(user.email , verificationCode);  # TO DO : UNCOMMENT IN PRODUCTION
+    } else {
+      throw new ApiError(500, "Too many attempts, please try again later.");
+    }
+    return user;
+  } catch (error) {
+    throw error;
+  }
+}; 
 
 export const getAllUsersService = async (userId) => {
   try {
