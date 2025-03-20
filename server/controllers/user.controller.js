@@ -9,6 +9,7 @@ import {
   resendOtpService,
   forgotPasswordService,
   resetPasswordService,
+  getProfileService
 } from "../services/user.service.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
@@ -59,12 +60,6 @@ export const loginUser = asyncHandler(async (req, res) => {
   return res
     .status(201) 
     .json(new ApiResponse(201, { token, user }, "User Login successfully."));
-});
-
-export const getUserProfile = asyncHandler(async (req, res) => {
-  return res
-    .status(200)
-    .json(new ApiResponse(200, allUsers, "User fetched successfully"));
 });
 
 export const logoutUser = asyncHandler(async (req, res) => {
@@ -123,3 +118,18 @@ export const resetPassword = asyncHandler(async (req, res, next) => {
         )
       );
 });
+
+export const getUserProfile = asyncHandler(async (req, res, next) => {
+  const userId = req.user._id;
+  const profile=  await getProfileService(userId);
+
+  return res
+  .status(201)
+  .json(
+    new ApiResponse(
+      201,
+      {profile},
+      "Password reset successfully"
+    )
+  );
+}); 

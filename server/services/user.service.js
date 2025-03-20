@@ -226,3 +226,12 @@ export const resetPasswordService = async (token,password,confirmPassword) => {
     throw error;
   }
 };
+
+export const getProfileService = async (userId) => {
+  try{
+    const profile = await User.findById(userId); 
+    return profile;
+  }catch (error) {
+    throw error;
+  }
+};
