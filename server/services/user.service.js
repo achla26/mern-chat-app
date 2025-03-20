@@ -197,9 +197,7 @@ export const resetPasswordService = async (token,password,confirmPassword) => {
   try {
     if ([token, password, confirmPassword].some((field) => !field?.trim())) {
       throw new ApiError(400, "All fields are required.");
-    } 
-
-    console.log("p Token "+token) 
+    }  
 
     const passwordToken = crypto.createHash("sha256").update(token).digest("hex");
 

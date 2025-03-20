@@ -19,10 +19,11 @@ app.use(cookieParser());
 
 // Routes
 import userRouter from './routes/user.route.js';
+import messageRoute from './routes/message.route.js';
 
 // Routes declaration
 app.use("/api/v1/users", userRouter);
-
+app.use("/api/v1/message", messageRoute);
 // Error handler middleware (must be after all routes)
 app.use(errorHandler);
 

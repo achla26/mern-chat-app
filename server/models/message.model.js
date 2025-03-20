@@ -7,21 +7,28 @@ const messageSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    receiverId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
+    receiverIds: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User", // Reference to the User schema
+        required: true,
+      },
+    ],
     message: {
       type: String,
       required: true,
     },
-    read: {
-      type: Boolean,
-      default: false, // to track if a message is read
+    conversationId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Conversation",
+    },
+    readBy: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "User",
+      default: [],
     },
   },
   { timestamps: true }
 );
 
-export default mongoose.model("Message", messageSchema);
+export const Message = mongoose.model("Message", messageSchema);

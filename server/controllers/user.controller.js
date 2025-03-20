@@ -54,8 +54,7 @@ export const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
   ErrorValidation(req);
-
-  const { token, user } = await signInService(email, password , res );
+  const { token, user } = await signInService(email, password , res ); 
 
   return res
     .status(201) 

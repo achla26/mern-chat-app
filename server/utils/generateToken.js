@@ -7,14 +7,15 @@ export const generateToken = async (userId, res) => {
         expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRY,
     });
 
-    res.cookie("jwt", token, {
+
+    res.cookie("token", token, {
       maxAge: 7 * 24 * 60 * 60 * 1000, // MS
       httpOnly: true, // prevent XSS attacks cross-site scripting attacks
       sameSite: "strict", // CSRF attacks cross-site request forgery attacks
       secure: process.env.NODE_ENV === "production",
-    });
+    }); 
 
-    return token;
+    return { token };
   } catch (error) {
     throw error;
   }
