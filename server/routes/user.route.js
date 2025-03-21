@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { body } from "express-validator";
+import validator from "validator";
 import {
   registerUser,
   verifyOTP,
@@ -18,8 +19,10 @@ const router = Router();
 router.post(
   "/register",
   [
-    body("name").notEmpty().trim().withMessage("Name is required"),
+    body("fullName").notEmpty().trim().withMessage("Name is required"), 
     body("email").isEmail().trim().withMessage("Enter Valid Email"),
+    body("username").notEmpty().trim().withMessage("Username is required"),
+    body("gender").notEmpty().trim().withMessage("Gender is required"),
     body("password")
       .isLength({ min: 6 })
       .withMessage("Password must be at least 6 characters long"),
@@ -45,10 +48,21 @@ router.post(
 router.post(
   "/login",
   [
-    body("email").isEmail().trim().withMessage("Invalid Email"),
+    body("identifier")
+      .trim()
+      .notEmpty()
+      .withMessage("Email or username is required.")
+      .custom((value) => {
+        const isEmail = validator.isEmail(value); // Check if it's a valid email
+        const isUsername = /^[a-zA-Z0-9_]+$/.test(value); // Check if it's a valid username (alphanumeric + underscores)
+        if (!isEmail && !isUsername) {
+          throw new Error("Invalid email or username format.");
+        }
+        return true;
+      }),
     body("password")
       .isLength({ min: 6 })
-      .withMessage("Password must be at least 6 characters long"),
+      .withMessage("Password must be at least 6 characters long."),
   ],
   loginUser
 );

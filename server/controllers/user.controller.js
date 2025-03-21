@@ -16,9 +16,9 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 export const registerUser = asyncHandler(async (req, res, next) => {
   ErrorValidation(req);
 
-  const { name, email, password } = req.body;
+  const { fullName, username, email, password , gender } = req.body;
 
-  const newUser = await signUpService(name, email, password);
+  const newUser = await signUpService(fullName, username, email, password , gender);
 
   return res
     .status(201)
@@ -52,10 +52,10 @@ export const resendOTP = asyncHandler(async (req, res, next) => {
 });
 
 export const loginUser = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const { identifier, password } = req.body;
 
   ErrorValidation(req);
-  const { token, user } = await signInService(email, password , res ); 
+  const { token, user } = await signInService(identifier, password , res ); 
 
   return res
     .status(201) 

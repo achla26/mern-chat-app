@@ -12,11 +12,20 @@ const userSchema = new mongoose.Schema(
       trim: true,
       match: [/.+@.+\..+/, "Please enter a valid email address"],
     },
-    name: {
+    fullName: {
       type: String,
       required: true,
       trim: true,
       index: true,
+    }, 
+    gender: {
+      type: String,
+      required: true,
+    },
+    username: {
+      type: String,
+      required: true,
+      unique: true,
     },
     profilePicture: {
       type: String,

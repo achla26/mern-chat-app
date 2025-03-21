@@ -8,51 +8,72 @@ import {
 } from "../mail/emails.js";
 import { generateToken } from "../utils/generateToken.js";
 import crypto from "crypto";
-export const signUpService = async (name, email, password) => {
+export const signUpService = async (
+  fullName,
+  username,
+  email,
+  password,
+  gender
+) => {
   try {
-    if ([name, email, password].some((field) => !field?.trim())) {
+    // Check if all required fields are provided and trimmed
+    if (
+      [fullName, username, email, password, gender].some(
+        (field) => !field?.trim()
+      )
+    ) {
       throw new ApiError(400, "All fields are required.");
     }
 
-    const existingUser = await User.findOne({ email });
+    // Check if a user with the same email already exists
+    const existingUserByEmail = await User.findOne({ email });
 
-    if (existingUser) {
+    if (existingUserByEmail) {
       throw new ApiError(409, "User with this email already exists.");
     }
 
-    // const avatarLocalPath = req.files?.avatar[0]?.path;
-    // if(avatarLocalPath){
-    //     const avatar = await uploadOnCloudinary(avatarLocalPath);
-    //     if(!avatar){
-    //         throw new ApiError(400 , "Avatar file is required")
-    //    }
-    // }
+    // Check if a user with the same username already exists
+    const existingUserByUsername = await User.findOne({ username });
 
+    if (existingUserByUsername) {
+      throw new ApiError(409, "User with this username already exists.");
+    }
+
+    // Create user data object
     const userData = {
-      name,
-      email,
+      fullName: fullName.trim(),
+      username: username.trim(),
+      email: email.trim(),
       password,
-      verificationCodeExpiresAt: Date.now() + 10 * 60 * 1000, // 24 hours
+      gender,
+      verificationCodeExpiresAt: Date.now() + 10 * 60 * 1000, // 10 minutes
     };
 
+    // Create the user in the database
     const user = await User.create(userData);
 
+    // Generate a verification code for the user
     const verificationCode = await user.generateVerificationCode();
 
+    // Save the user with the verification code
     await user.save();
 
+    // Check if OTP attempts are allowed
     if (await OTPAttempt(user)) {
-      //await sendVerificationEmail(user.email , verificationCode);  # TO DO : UNCOMMENT IN PRODUCTION
+      // await sendVerificationEmail(user.email, verificationCode);  // TO DO: UNCOMMENT IN PRODUCTION
     } else {
       throw new ApiError(500, "Too many attempts, please try again later.");
     }
+
+    // Return the created user
     return user;
   } catch (error) {
+    // Handle any errors
     throw error;
   }
 };
 
-export const verifyOTPService = async (email, otp , res) => {
+export const verifyOTPService = async (email, otp, res) => {
   try {
     if ([otp, email].some((field) => !field?.trim())) {
       throw new ApiError(400, "All fields are required.");
@@ -77,7 +98,7 @@ export const verifyOTPService = async (email, otp , res) => {
       throw new ApiError(400, "OTP Expired.");
     }
 
-    const { token } = await generateToken(user._id , res);
+    const { token } = await generateToken(user._id, res);
 
     user.isVerified = true;
     user.verificationCode = null;
@@ -92,33 +113,43 @@ export const verifyOTPService = async (email, otp , res) => {
   }
 };
 
-export const signInService = async (email, password , res) => {
+export const signInService = async (identifier, password, res) => {
   try {
-    if ([email, password].some((field) => !field?.trim())) {
+    // Check if identifier (email or username) and password are provided and trimmed
+    if ([identifier, password].some((field) => !field?.trim())) {
       throw new ApiError(400, "All fields are required.");
     }
 
-    const user = await User.findOne({ email }).select("+password");
+    // Find the user by email or username
+    const user = await User.findOne({
+      $or: [{ email: identifier }, { username: identifier }],
+    }).select("+password");
 
+    // If no user is found, throw an error
     if (!user) {
       throw new ApiError(400, "User does not exist.");
     }
 
+    // Check if the user is verified
     if (!user.isVerified) {
       throw new ApiError(400, "User is not verified.");
     }
 
+    // Validate the password
     const isPasswordValid = await user.comparePassword(password);
 
     if (!isPasswordValid) {
       throw new ApiError(401, "Invalid User Credentials.");
     }
 
-    const { token } = await generateToken(user._id , res );
+    // Generate a token for the user
+    const { token } = await generateToken(user._id, res);
 
+    // Update the user's last login timestamp
     user.lastLogin = new Date();
     await user.save();
 
+    // Return the user and token
     return { user, token };
   } catch (error) {
     throw error;
@@ -193,18 +224,25 @@ export const forgotPasswordService = async (email) => {
   }
 };
 
-export const resetPasswordService = async (token,password,confirmPassword) => {
+export const resetPasswordService = async (
+  token,
+  password,
+  confirmPassword
+) => {
   try {
     if ([token, password, confirmPassword].some((field) => !field?.trim())) {
       throw new ApiError(400, "All fields are required.");
-    }  
+    }
 
-    const passwordToken = crypto.createHash("sha256").update(token).digest("hex");
+    const passwordToken = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
 
     const user = await User.findOne({
       resetPasswordToken: passwordToken,
       resetPasswordExpiresAt: { $gt: Date.now() },
-    }); 
+    });
 
     if (!user) {
       throw new ApiError(400, "Reset token is invalid or has been expired.");
@@ -228,10 +266,10 @@ export const resetPasswordService = async (token,password,confirmPassword) => {
 };
 
 export const getProfileService = async (userId) => {
-  try{
-    const profile = await User.findById(userId); 
+  try {
+    const profile = await User.findById(userId);
     return profile;
-  }catch (error) {
+  } catch (error) {
     throw error;
   }
 };
