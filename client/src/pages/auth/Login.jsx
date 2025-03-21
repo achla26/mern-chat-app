@@ -34,10 +34,15 @@ const Login = ({ className, ...props }) => {
   };
 
   const handleLogin = async () => {
-    const response = await dispatch(loginUserThunk(loginData));
-    if (response?.payload?.success) {
-      navigate("/");
+    try{
+      const response = await dispatch(loginUserThunk(loginData));
+      if (response?.payload?.success) {
+        navigate("/");
+      }
+    }catch(err){
+      return toast.error(`An error occurred.${err}`);
     }
+    
   }; 
   return (
     <div
