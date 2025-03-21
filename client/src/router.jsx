@@ -3,6 +3,7 @@ import ProtectedRoute from "./utility/auth/ProtectedRoute";
 import Login from "./pages/auth/Login";
 import Home from "./pages/home/Home";
 import Register from "./pages/auth/Register";
+import OtpVerify from "./pages/auth/OtpVerify";
  
 const router = createBrowserRouter([
   {
@@ -22,6 +23,10 @@ const router = createBrowserRouter([
   {
     path: "/register",
     element: <Register />, // Public route
+  },
+  {
+    path: "/otp-verify",
+    element: <OtpVerify />, // Public route
   }
 ]);
 const Router = () => {

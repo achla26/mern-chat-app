@@ -18,7 +18,7 @@ import toast from "react-hot-toast";
 
 const Register = ({ className, ...props }) => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useSelector((state) => state.user);
+  const { isAuthenticated } = useSelector((state) => state.userReducer);
   const dispatch = useDispatch();
 
   const [registerData, setRegisterData] = useState({
@@ -45,7 +45,7 @@ const Register = ({ className, ...props }) => {
 
       const response = await dispatch(registerUserThunk(registerData));
       if (response?.payload?.success) {
-        navigate("/");
+        navigate("/otp-verify");
       }  
     } catch(err){
       return toast.error(`An error occurred.${err}`);

@@ -129,7 +129,7 @@ export const getUserProfile = asyncHandler(async (req, res, next) => {
     new ApiResponse(
       201,
       {profile},
-      "Password reset successfully"
+      "User Profile get successfully"
     )
   );
 }); 

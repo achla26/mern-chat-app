@@ -18,8 +18,7 @@ import { useNavigation } from "../../hooks/navigation"
 const Login = ({ className, ...props }) => { 
 
   const { navigate, resetAndNavigate, goBack, push } = useNavigation();
-  const { isAuthenticated } = useSelector((state) => state.user);
-  // console.log(isAuthenticated)
+  const { isAuthenticated } = useSelector((state) => state.userReducer); 
   const dispatch = useDispatch();
 
   const [loginData, setLoginData] = useState({
