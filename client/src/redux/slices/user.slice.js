@@ -46,8 +46,7 @@ export const userSlice = createSlice({
       state.buttonLoading = true;
     });
     builder.addCase(otpVerifyThunk.fulfilled, (state, action) => {
-      state.userProfile = action.payload?.responseData?.user;
-      state.isAuthenticated = true;
+      state.userProfile = action.payload?.responseData?.user; 
       state.buttonLoading = false;
     });
     builder.addCase(otpVerifyThunk.rejected, (state, action) => {
@@ -60,9 +59,8 @@ export const userSlice = createSlice({
       state.screenLoading = true;
     });
     builder.addCase(getUserProfileThunk.fulfilled, (state, action) => {
-      state.isAuthenticated = true;
-      state.screenLoading = false;
-      state.userProfile = action.payload?.responseData;
+      state.screenLoading = false; 
+      state.userProfile = action.payload?.user;
     });
     builder.addCase(getUserProfileThunk.rejected, (state, action) => {
       state.screenLoading = false;

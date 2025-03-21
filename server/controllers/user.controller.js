@@ -121,14 +121,14 @@ export const resetPassword = asyncHandler(async (req, res, next) => {
 
 export const getUserProfile = asyncHandler(async (req, res, next) => {
   const userId = req.user._id;
-  const profile=  await getProfileService(userId);
+  const user=  await getProfileService(userId);
 
   return res
   .status(201)
   .json(
     new ApiResponse(
       201,
-      {profile},
+      {user},
       "User Profile get successfully"
     )
   );

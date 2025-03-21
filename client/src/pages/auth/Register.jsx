@@ -18,7 +18,7 @@ import toast from "react-hot-toast";
 
 const Register = ({ className, ...props }) => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useSelector((state) => state.userReducer);
+  const { isAuthenticated } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
   const [registerData, setRegisterData] = useState({

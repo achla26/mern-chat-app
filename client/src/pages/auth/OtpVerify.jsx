@@ -17,10 +17,11 @@ import { useNavigation } from "../../hooks/navigation"
 const OtpVerify = ({ className, ...props }) => { 
 
   const { navigate } = useNavigation();
-  const s = useSelector((state) => state.userReducer); 
-  const dispatch = useDispatch();
 
-  console.log(s)
+  const { userProfile } = useSelector((state) => state.user);  
+  const dispatch = useDispatch();
+ 
+  console.log(userProfile)
 
   const [userData, setUserData] = useState({
     email: "",
