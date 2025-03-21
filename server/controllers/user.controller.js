@@ -59,7 +59,7 @@ export const loginUser = asyncHandler(async (req, res) => {
 
   return res
     .status(201) 
-    .json(new ApiResponse(201, { token, user }, "User Login successfully."));
+    .json(new ApiResponse(201, { user }, "User Login successfully."));
 });
 
 export const logoutUser = asyncHandler(async (req, res) => {

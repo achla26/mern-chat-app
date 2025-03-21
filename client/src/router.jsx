@@ -12,14 +12,6 @@ const router = createBrowserRouter([
         path: "/",
         element: <Home />, // Protected route
       },
-      // {
-      //   path: "/dashboard",
-      //   element: <Dashboard />, // Protected route
-      // },
-      // {
-      //   path: "/profile",
-      //   element: <Profile />, // Protected route
-      // },
     ],
   },
   {

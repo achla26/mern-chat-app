@@ -10,30 +10,35 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
-import { useSelector, useDispatch } from 'react-redux';
-import { login } from '../../redux/slices/user.slice';
+import { useSelector, useDispatch } from "react-redux";
+import { login } from "../../redux/slices/user.slice";
 import { loginThunk } from "@/redux/thunks/user.thunk";
-const Login = ({ className, ...props }) => {
-  const { isAuthenticated } = useSelector(state=>state.user)
+import { toast } from "react-hot-toast";
+import { useNavigation } from "../../hooks/navigation"
+const Login = ({ className, ...props }) => { 
+
+  const { navigate, resetAndNavigate, goBack, push } = useNavigation();
+  const { isAuthenticated } = useSelector((state) => state.user);
   // console.log(isAuthenticated)
   const dispatch = useDispatch();
 
   const [loginData, setLoginData] = useState({
-    username: "",
-    password: "",
+    email: "",
+    password: "", 
   });
-  
+
   const handleFormData = (e) => {
     setLoginData((prev) => {
       return { ...prev, [e.target.name]: e.target.value };
-    });
+    }); 
   };
 
-  // Log the updated loginData using use-Effect
-  useEffect(() => {
-    dispatch(loginThunk());
-  }, []); // Only log when loginData changes
-
+  const handleLogin = async () => {
+    const response = await dispatch(loginThunk(loginData));
+    if (response?.payload?.success) {
+      navigate("/");
+    }
+  }; 
   return (
     <div
       className={cn(
@@ -53,14 +58,14 @@ const Login = ({ className, ...props }) => {
           <form>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="email">email</Label>
                 <Input
-                  id="username"
-                  type="text"
-                  name="username"
-                  placeholder="john"
+                  id="email"
+                  type="email"
+                  name="email"
+                  placeholder="john@gmail.com"
                   required
-                  value={loginData.username}
+                  value={loginData.email}
                   onChange={handleFormData}
                 />
               </div>
@@ -82,7 +87,11 @@ const Login = ({ className, ...props }) => {
                   onChange={handleFormData}
                 />
               </div>
-              <Button type="button" className="w-full" onClick={() => dispatch(loginThunk())}>
+              <Button
+                type="button"
+                className="w-full"
+                onClick={handleLogin} 
+              >
                 Login
               </Button>
             </div>

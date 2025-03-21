@@ -6,7 +6,7 @@ import errorHandler from "./middlewares/error.middleware.js"; // Import the erro
 const app = express();
 
 const corsOptions = {
-    origin: process.env.CROSS_ORIGIN,
+    origin: process.env.CLIENT_ORIGIN,
     credentials: true,
 };
 
@@ -22,7 +22,7 @@ import userRouter from './routes/user.route.js';
 import messageRoute from './routes/message.route.js';
 
 // Routes declaration
-app.use("/api/v1/users", userRouter);
+app.use("/api/v1/user", userRouter);
 app.use("/api/v1/message", messageRoute);
 // Error handler middleware (must be after all routes)
 app.use(errorHandler);
