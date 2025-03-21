@@ -2,12 +2,12 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import { toast } from "react-hot-toast";
 import { axiosInstance } from "@/utility/axios/axiosInstance";
 // First, create the thunk
-export const loginThunk = createAsyncThunk(
+export const loginUserThunk = createAsyncThunk(
   "user/login", // Action type
-  async ({ email, password }, { rejectWithValue }) => {
+  async ({ identifier, password }, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.post("/user/login", {
-        email,
+        identifier,
         password,
       });
       const {success , message}  = response.data; 
@@ -25,6 +25,29 @@ export const loginThunk = createAsyncThunk(
       }
  
       return rejectWithValue(err);
+    }
+  }
+);
+
+
+export const registerUserThunk = createAsyncThunk(
+  "user/signup",
+  async ({ fullName, email, password , username , gender}, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.post("/user/register", {
+        fullName,
+        email,
+        password,
+        username,
+        gender        
+      });
+      toast.success("Account created successfully!!");
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      const errorOutput = error?.response?.data?.errMessage;
+      toast.error(errorOutput);
+      return rejectWithValue(errorOutput);
     }
   }
 );

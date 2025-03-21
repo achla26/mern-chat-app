@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { login } from "../../redux/slices/user.slice";
-import { loginThunk } from "@/redux/thunks/user.thunk";
+import { loginUserThunk } from "@/redux/thunks/user.thunk";
 import { toast } from "react-hot-toast";
 import { useNavigation } from "../../hooks/navigation"
 const Login = ({ className, ...props }) => { 
@@ -23,7 +23,7 @@ const Login = ({ className, ...props }) => {
   const dispatch = useDispatch();
 
   const [loginData, setLoginData] = useState({
-    email: "",
+    identifier: "",
     password: "", 
   });
 
@@ -34,7 +34,7 @@ const Login = ({ className, ...props }) => {
   };
 
   const handleLogin = async () => {
-    const response = await dispatch(loginThunk(loginData));
+    const response = await dispatch(loginUserThunk(loginData));
     if (response?.payload?.success) {
       navigate("/");
     }
@@ -51,21 +51,21 @@ const Login = ({ className, ...props }) => {
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            Enter your Email or Username below to login to your account
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
-                <Label htmlFor="email">email</Label>
+                <Label htmlFor="identifier">Email/Username</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  name="email"
-                  placeholder="john@gmail.com"
+                  id="identifier"
+                  type="text"
+                  name="identifier"
+                  placeholder="john"
                   required
-                  value={loginData.email}
+                  value={loginData.identifier}
                   onChange={handleFormData}
                 />
               </div>
