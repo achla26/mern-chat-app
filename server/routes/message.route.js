@@ -23,7 +23,7 @@ router.post(
   sendMessage
 );
 
-router.get("/chats", isUserAuthenticated, getUserChats);
+router.post("/chats", isUserAuthenticated, getUserChats);
 router.get(
   "/conversation/:conversationId",
   isUserAuthenticated,

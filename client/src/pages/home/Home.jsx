@@ -3,7 +3,8 @@ import { Menu, X } from 'lucide-react';
 import Sidebar from './sidebar/Sidebar'; 
 import ChatArea from './chat/ChatArea';
 import { useSelector, useDispatch } from "react-redux";
-import { getAllUsersThunk , logoutUserThunk} from '@/redux/thunks/user.thunk';
+import {  logoutUserThunk} from '@/redux/thunks/user.thunk';
+import { getUserChatsThunk } from '@/redux/thunks/message.thunk';
 import { toast } from 'react-hot-toast';
 import { useNavigation } from "../../hooks/navigation";
 
@@ -37,24 +38,28 @@ function Home() {
 
   const handleLogout = async () => {
     try {
-      const response = await dispatch(logoutUserThunk());   
-      // console.log(response.payload) 
+      const response = await dispatch(logoutUserThunk());    
       if (response?.payload?.success) {  
-        navigate("/login"); // Navigate to the home page
+        navigate("/login");  
       }
     } catch (err) {
       return toast.error(`An error occurred. ${err}`);
     }
   };
-  useEffect(()=>{
-    try {
-      // const response =  dispatch(getAllUsersThunk());  
-      // console.log(response)
+
+
+  useEffect(() => {
+    const fetchChats = async () => {
+      try {
+        await dispatch(getUserChatsThunk());
+      } catch (err) {
+        toast.error(`An error occurred. ${err}`);
+      }
+    };
+
+    fetchChats();
+  }, [dispatch]);
  
-    } catch (err) {
-      return toast.error(`An error occurred. ${err}`);
-    }
-  },[])
 
   const handleSendMessage = (e) => {
     e.preventDefault();

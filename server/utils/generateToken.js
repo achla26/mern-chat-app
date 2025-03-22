@@ -26,6 +26,14 @@ export const generateTokens = async (userId, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
+     // Store Access Token in HTTP-Only Cookie
+     res.cookie("accessToken", accessToken, {
+      httpOnly: true, // Secure from XSS
+      sameSite: "strict", // Prevent CSRF
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
     return { accessToken, refreshToken }; // Return both access and refresh token
   } catch (error) {
     throw error;

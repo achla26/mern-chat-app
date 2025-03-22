@@ -50,7 +50,8 @@ axiosInstance.interceptors.response.use(
 
         // Retry the original request with the new access token
         error.config.headers["Authorization"] = `Bearer ${accessToken}`;
-        document.cookie = `token=${accessToken}; path=/; max-age=3600; Secure; HttpOnly`;
+        Cookies.set("accessToken", token, { expires: 1 });
+ 
 
         return axiosInstance(error.config); // Retry the original request with the new token
       } catch (refreshError) {
