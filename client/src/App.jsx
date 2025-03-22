@@ -1,12 +1,11 @@
-import { useEffect } from "react";
-import "./App.css";
+import { useEffect } from "react"; 
 import { Toaster } from "react-hot-toast";
 import { useDispatch } from "react-redux";
 // import { getUserProfileThunk } from "./redux/thunks/user.thunk";
 
 function App() {
   
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
 
   // useEffect(() => {
   //   (async () => {

@@ -20,7 +20,7 @@ import { Link } from "react-router-dom";
 
 const Login = ({ className, ...props }) => {
   const { navigate} = useNavigation();
-  const { isAuthenticated } = useSelector((state) => state.user);
+  // const { isAuthenticated } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
   const [loginData, setLoginData] = useState({

@@ -60,6 +60,8 @@ export const userSlice = createSlice({
     builder.addCase(otpVerifyThunk.fulfilled, (state, action) => {
       state.userProfile = action.payload?.responseData?.user; 
       state.buttonLoading = false;
+      state.isAuthenticated = true;
+
     });
     builder.addCase(otpVerifyThunk.rejected, (state, action) => {
       state.buttonLoading = false;

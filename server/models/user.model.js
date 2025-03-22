@@ -86,8 +86,7 @@ userSchema.methods.generateVerificationCode = function () {
 };
 
 userSchema.methods.generateResetPasswordToken = function () {
-  const resetToken = crypto.randomBytes(20).toString("hex");
-  console.log("resetToken " + resetToken);
+  const resetToken = crypto.randomBytes(20).toString("hex"); 
   this.resetPasswordToken = crypto
     .createHash("sha256")
     .update(resetToken)
