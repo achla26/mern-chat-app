@@ -11,6 +11,7 @@ import {
   getUserProfile,
   logoutUser,
   getAllUsers,
+  refreshToken
 } from "../controllers/user.controller.js";
 import { isUserAuthenticated } from "../middlewares/auth.middleware.js";
 
@@ -94,5 +95,6 @@ router.get("/profile", isUserAuthenticated, getUserProfile);
 router.get("/logout", isUserAuthenticated, logoutUser);
 
 router.get("/all", isUserAuthenticated, getAllUsers);
+router.get("/refresh", refreshToken);
 
 export default router;

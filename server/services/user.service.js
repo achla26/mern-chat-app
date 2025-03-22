@@ -6,7 +6,7 @@ import {
   sendPasswordResetEmail,
   sendResetSuccessEmail,
 } from "../mail/emails.js";
-import { generateToken } from "../utils/generateToken.js";
+import { generateTokens } from "../utils/generateToken.js";
 import crypto from "crypto";
 export const signUpService = async (
   fullName,
@@ -98,16 +98,16 @@ export const verifyOTPService = async (email, otp, res) => {
       throw new ApiError(400, "OTP Expired.");
     }
 
-    const { token } = await generateToken(user._id, res);
+    const { accessToken } = await generateTokens(user._id, res);
 
     user.isVerified = true;
     user.verificationCode = null;
-    user.verificationCodeExpiresAtsAt = null;
-    user.token = token;
+    user.verificationCodeExpiresAt = null;
+    user.accessToken = accessToken;
 
     user = await user.save({ validateModifiedOnly: true });
 
-    return { user, token };
+    return { user, accessToken };
   } catch (error) {
     throw error;
   }
@@ -115,7 +115,6 @@ export const verifyOTPService = async (email, otp, res) => {
 
 export const signInService = async (identifier, password, res) => {
   try {
-    // Check if identifier (email or username) and password are provided and trimmed
     if ([identifier, password].some((field) => !field?.trim())) {
       throw new ApiError(400, "All fields are required.");
     }
@@ -125,36 +124,33 @@ export const signInService = async (identifier, password, res) => {
       $or: [{ email: identifier }, { username: identifier }],
     }).select("+password");
 
-    // If no user is found, throw an error
     if (!user) {
       throw new ApiError(400, "User does not exist.");
     }
 
-    // Check if the user is verified
     if (!user.isVerified) {
       throw new ApiError(400, "User is not verified.");
     }
 
-    // Validate the password
+    // Validate password
     const isPasswordValid = await user.comparePassword(password);
-
     if (!isPasswordValid) {
       throw new ApiError(401, "Invalid User Credentials.");
     }
 
-    // Generate a token for the user
-    const { token } = await generateToken(user._id, res);
+    // Generate tokens (access + refresh)
+    const { accessToken } = await generateTokens(user._id, res);
 
-    // Update the user's last login timestamp
+    // Update last login time
     user.lastLogin = new Date();
     await user.save();
 
-    // Return the user and token
-    return { user, token };
+    return { user, accessToken };
   } catch (error) {
     throw error;
   }
 };
+
 
 export const resendOtpService = async (email) => {
   try {
@@ -214,7 +210,7 @@ export const forgotPasswordService = async (email) => {
 
     const resetToken = user.generateResetPasswordToken();
     await user.save({ validateBeforeSave: false });
-    const resetPasswordUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    const resetPasswordUrl = `${process.env.CLIENT_ORIGIN}/reset-password/${resetToken}`;
 
     // await sendPasswordResetEmail(user.email , `${resetPasswordUrl}`);  // TO DO : UNCOMMENT IN PRODUCTION
 

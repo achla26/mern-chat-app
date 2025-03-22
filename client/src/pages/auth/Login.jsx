@@ -11,38 +11,43 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { login } from "../../redux/slices/user.slice";
+import { setAuthToken } from "@/utility/axios/axiosInstance";  // Import setAuthToken function
+
 import { loginUserThunk } from "@/redux/thunks/user.thunk";
 import { toast } from "react-hot-toast";
-import { useNavigation } from "../../hooks/navigation"
-const Login = ({ className, ...props }) => { 
+import { useNavigation } from "../../hooks/navigation";
+import { Link } from "react-router-dom";
 
-  const { navigate, resetAndNavigate, goBack, push } = useNavigation();
-  const { isAuthenticated } = useSelector((state) => state.user); 
+const Login = ({ className, ...props }) => {
+  const { navigate} = useNavigation();
+  const { isAuthenticated } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
   const [loginData, setLoginData] = useState({
     identifier: "",
-    password: "", 
+    password: "",
   });
 
   const handleFormData = (e) => {
     setLoginData((prev) => {
       return { ...prev, [e.target.name]: e.target.value };
-    }); 
+    });
   };
 
   const handleLogin = async () => {
-    try{
-      const response = await dispatch(loginUserThunk(loginData));
-      if (response?.payload?.success) {
-        navigate("/");
+    try {
+      const response = await dispatch(loginUserThunk(loginData)); // Assuming loginUserThunk dispatches the login API request
+  
+      if (response?.payload?.success) { 
+        const token = response.payload.accessToken; // Replace with actual token from API response
+        setAuthToken(token);  // Set the token in Redux and axios headers
+        navigate("/"); // Navigate to the home page
       }
-    }catch(err){
-      return toast.error(`An error occurred.${err}`);
+    } catch (err) {
+      return toast.error(`An error occurred. ${err}`);
     }
-    
-  }; 
+  };
+
   return (
     <div
       className={cn(
@@ -76,12 +81,12 @@ const Login = ({ className, ...props }) => {
               <div className="grid gap-2">
                 <div className="flex items-center">
                   <Label htmlFor="password">Password</Label>
-                  <a
-                    href="#"
+                  <Link
+                    to="/forgot-password"
                     className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
                   >
                     Forgot your password?
-                  </a>
+                  </Link>
                 </div>
                 <Input
                   id="password"
@@ -91,19 +96,15 @@ const Login = ({ className, ...props }) => {
                   onChange={handleFormData}
                 />
               </div>
-              <Button
-                type="button"
-                className="w-full"
-                onClick={handleLogin} 
-              >
+              <Button type="button" className="w-full" onClick={handleLogin}>
                 Login
               </Button>
             </div>
             <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{" "}
-              <a href="#" className="underline underline-offset-4">
+              <Link to="register" className="underline underline-offset-4">
                 Sign up
-              </a>
+              </Link>
             </div>
           </form>
         </CardContent>

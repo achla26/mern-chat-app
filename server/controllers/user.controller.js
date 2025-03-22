@@ -12,6 +12,7 @@ import {
   getProfileService
 } from "../services/user.service.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { generateTokens } from "../utils/generateToken.js";
 
 export const registerUser = asyncHandler(async (req, res, next) => {
   ErrorValidation(req);
@@ -55,11 +56,11 @@ export const loginUser = asyncHandler(async (req, res) => {
   const { identifier, password } = req.body;
 
   ErrorValidation(req);
-  const { token, user } = await signInService(identifier, password , res ); 
+  const { accessToken, user } = await signInService(identifier, password , res ); 
 
   return res
     .status(201) 
-    .json(new ApiResponse(201, { user }, "User Login successfully."));
+    .json(new ApiResponse(201, { user , accessToken}, "User Login successfully."));
 });
 
 export const logoutUser = asyncHandler(async (req, res) => {
@@ -133,3 +134,24 @@ export const getUserProfile = asyncHandler(async (req, res, next) => {
     )
   );
 }); 
+
+export const refreshToken = asyncHandler(async (req, res) => {
+  try {
+    // Extract refresh token from cookies
+    const { refreshToken } = req.cookies;
+    if (!refreshToken) throw new ApiError(401, "No refresh token provided.");
+
+    // Verify the refresh token
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_TOKEN_SECRET);
+    if (!decoded?.userId) throw new ApiError(403, "Invalid refresh token.");
+
+    // Use the userId from the decoded refresh token
+    const { accessToken, refreshToken: newRefreshToken } = await generateTokens(decoded.userId, res);
+
+    // Return the new access token and optionally the new refresh token
+    res.json({ accessToken });
+
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ message: error.message });
+  }
+});

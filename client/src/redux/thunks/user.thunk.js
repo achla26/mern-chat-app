@@ -1,125 +1,57 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { toast } from "react-hot-toast";
 import { axiosInstance } from "@/utility/axios/axiosInstance";
-// First, create the thunk
-export const loginUserThunk = createAsyncThunk(
-  "user/login", // Action type
-  async ({ identifier, password }, { rejectWithValue }) => {
+import { handleThunkError } from "@/utility/thunkUtil";
+
+// Reusable thunk logic
+const createThunk = (type, apiCall, successMessage) =>
+  createAsyncThunk(`user/${type}`, async (payload, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.post("/user/login", {
-        identifier,
-        password,
-      });
-      const { success, message } = response.data;
-      if (success) {
-        toast.success(message);
-      }
+      const response = await apiCall(payload);
+      if (successMessage) toast.success(successMessage);
       return response.data;
     } catch (error) {
-      if (error?.response?.data?.errors.length === 0) {
-        toast.error(error?.response?.data?.message);
-      } else {
-        error?.response?.data?.errors.forEach((err) => toast.error(err));
-      }
-
-      return rejectWithValue(err);
+      return rejectWithValue(handleThunkError(error));
     }
-  }
+  });
+
+export const loginUserThunk = createThunk(
+  "login",
+  (payload) => axiosInstance.post("/user/login", payload),
+  "Login successfully!"
 );
 
-export const registerUserThunk = createAsyncThunk(
-  "user/signup",
-  async (
-    { fullName, email, password, username, gender },
-    { rejectWithValue }
-  ) => {
-    try {
-      const response = await axiosInstance.post("/user/register", {
-        fullName,
-        email,
-        password,
-        username,
-        gender,
-      });
-      toast.success("Account created successfully!!");
-      return response.data;
-    } catch (error) {
-      if (error?.response?.data?.errors.length === 0) {
-        toast.error(error?.response?.data?.message);
-      } else {
-        error?.response?.data?.errors.forEach((err) => toast.error(err));
-      }
-
-      return rejectWithValue(err);
-    }
-  }
+export const registerUserThunk = createThunk(
+  "register",
+  (payload) => axiosInstance.post("/user/register", payload),
+  "Account created successfully!"
 );
 
-export const logoutUserThunk = createAsyncThunk(
-  "user/logout",
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await axiosInstance.post("/user/logout");
-      toast.success("Logout successfull!!");
-      const { success, message } = response.data;
-      if (success) {
-        toast.success(message);
-      }
-      return response.data;
-    } catch (error) {
-      if (error?.response?.data?.errors.length === 0) {
-        toast.error(error?.response?.data?.message);
-      } else {
-        error?.response?.data?.errors.forEach((err) => toast.error(err));
-      }
-
-      return rejectWithValue(err);
-    }
-  }
+export const logoutUserThunk = createThunk(
+  "logout",
+  () => axiosInstance.post("/user/logout"),
+  "Logout successful!"
 );
 
-export const otpVerifyThunk = createAsyncThunk(
-  "user/email-verify", // Action type
-  async ({ email, otp }, { rejectWithValue }) => {
-    try {
-      const response = await axiosInstance.post("/user/login", {
-        email,
-        otp,
-      });
-      const { success, message } = response.data;
-      if (success) {
-        toast.success(message);
-      }
-      return response.data;
-    } catch (error) {
-      if (error?.response?.data?.errors.length === 0) {
-        toast.error(error?.response?.data?.message);
-      } else {
-        error?.response?.data?.errors.forEach((err) => toast.error(err));
-      }
-
-      return rejectWithValue(err);
-    }
-  }
+export const otpVerifyThunk = createThunk(
+  "email-verify",
+  (payload) => axiosInstance.post("/user/email-verify", payload),
+  "OTP verified successfully!"
 );
 
-export const getUserProfileThunk = createAsyncThunk(
-  "user/getProfile",
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await axiosInstance.get("/user/profile");
-      return response.data;
-    } catch (error) {
-      console.error(error);
+export const forgotPasswordThunk = createThunk(
+  "forgot-password",
+  (payload) => axiosInstance.post("/user/forgot-password", payload),
+  "Reset Link sent to your email successfully!"
+);
 
-      if (error?.response?.data?.errors.length === 0) {
-        let errorOutput = error?.response?.data?.message;
-        return rejectWithValue(errorOutput);
-      } else {
-        let errorOutput = error?.response?.data?.errors;
 
-        return rejectWithValue(errorOutput);
-      }
-    }
-  }
+export const resetPasswordThunk = createThunk(
+  "reset-password",
+  (payload) => axiosInstance.post(`/user/reset-password/${payload.token}`, payload),
+  "Password Reset successfully!"
+);
+
+export const getUserProfileThunk = createThunk("getProfile", () =>
+  axiosInstance.get("/user/profile")
 );

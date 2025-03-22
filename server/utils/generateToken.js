@@ -1,21 +1,32 @@
 import jwt from "jsonwebtoken";
-export const generateToken = async (userId, res) => { 
-  try {
-    if (!userId) throw new Error("User is required");
 
-    const token = jwt.sign({ userId }, process.env.JWT_ACCESS_TOKEN_SECRET, {
-        expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRY,
+export const generateTokens = async (userId, res) => {
+  try {
+    if (!userId) throw new Error("User ID is required");
+
+    // Generate Access Token (Short-lived)
+    const accessToken = jwt.sign(
+      { userId },
+      process.env.JWT_ACCESS_TOKEN_SECRET,
+      { expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRY || "15m" } // 15 min
+    );
+
+    // Generate Refresh Token (Long-lived)
+    const refreshToken = jwt.sign(
+      { userId },
+      process.env.JWT_REFRESH_TOKEN_SECRET,
+      { expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRY || "7d" } // 7 days
+    );
+
+    // Store Refresh Token in HTTP-Only Cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true, // Secure from XSS
+      sameSite: "strict", // Prevent CSRF
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-
-    res.cookie("token", token, {
-      maxAge: 7 * 24 * 60 * 60 * 1000, // MS
-      httpOnly: true, // prevent XSS attacks cross-site scripting attacks
-      sameSite: "strict", // CSRF attacks cross-site request forgery attacks
-      secure: process.env.NODE_ENV === "production",
-    }); 
-
-    return { token };
+    return { accessToken, refreshToken }; // Return both access and refresh token
   } catch (error) {
     throw error;
   }

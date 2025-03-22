@@ -11,22 +11,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux"; 
-import { otpVerifyThunk } from "@/redux/thunks/user.thunk";
+import { forgotPasswordThunk } from "@/redux/thunks/user.thunk";
 import { toast } from "react-hot-toast";
-import { useNavigation } from "../../hooks/navigation";
-import { setAuthToken } from "@/utility/axios/axiosInstance";  // Import setAuthToken function
+import { useNavigation } from "../../hooks/navigation";   // Import setAuthToken function
+import { Link } from "react-router-dom";
 
-const OtpVerify = ({ className, ...props }) => { 
+const ForgotPassword = ({ className, ...props }) => { 
 
   const { navigate } = useNavigation();
-  const dispatch = useDispatch();
-
-  let email = sessionStorage.getItem("email"); // Save email
+  const dispatch = useDispatch(); 
   
 
   const [userData, setUserData] = useState({
-    email,
-    otp: "", 
+    email:"", 
   });
 
   const handleFormData = (e) => {
@@ -35,15 +32,9 @@ const OtpVerify = ({ className, ...props }) => {
     }); 
   };
 
-  const handleLogin = async () => {
+  const handleForgotPssword = async () => {
     try {
-      const response = await dispatch(otpVerifyThunk(userData)); // Assuming loginUserThunk dispatches the login API request
-  
-      if (response?.payload?.success) { 
-        const token = response.payload.accessToken; // Replace with actual token from API response
-        setAuthToken(token);  // Set the token in Redux and axios headers
-        navigate("/"); // Navigate to the home page
-      }
+      const response = await dispatch(forgotPasswordThunk(userData));
     } catch (err) {
       return toast.error(`An error occurred. ${err}`);
     }
@@ -58,9 +49,9 @@ const OtpVerify = ({ className, ...props }) => {
     >
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
+          <CardTitle className="text-2xl">Forgot Password</CardTitle>
           <CardDescription>
-            Enter your Email or Username below to login to your account
+            Enter your Email below 
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -68,26 +59,27 @@ const OtpVerify = ({ className, ...props }) => {
             <div className="flex flex-col gap-6"> 
               <div className="grid gap-2"> 
                 <Input
-                  id="otp"
-                  name="otp"
-                  type="otp"
+                  id="email"
+                  name="email"
+                  type="email"
                   required
+                  value={userData.email}
                   onChange={handleFormData}
                 />
               </div>
               <Button
                 type="button"
                 className="w-full"
-                onClick={handleLogin} 
+                onClick={handleForgotPssword} 
               >
                 Login
               </Button>
             </div>
             <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{" "}
-              <a href="#" className="underline underline-offset-4">
+              <Link to="/register" className="underline underline-offset-4">
                 Sign up
-              </a>
+              </Link>
             </div>
           </form>
         </CardContent>
@@ -95,4 +87,4 @@ const OtpVerify = ({ className, ...props }) => {
     </div>
   );
 };
-export default OtpVerify;
+export default ForgotPassword;
