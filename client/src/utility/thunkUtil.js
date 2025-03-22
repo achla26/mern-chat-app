@@ -1,5 +1,17 @@
 // utils/thunkUtils.js
-import { toast } from 'react-hot-toast';
+import { toast } from "react-hot-toast";
+import { createAsyncThunk } from "@reduxjs/toolkit";
+
+export const createThunk = (type, apiCall, successMessage) =>
+  createAsyncThunk(`user/${type}`, async (payload, { rejectWithValue }) => {
+    try {
+      const response = await apiCall(payload);
+      if (successMessage) toast.success(successMessage);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(handleThunkError(error));
+    }
+  });
 
 // Handle errors and show toast notifications
 export const handleThunkError = (error) => {

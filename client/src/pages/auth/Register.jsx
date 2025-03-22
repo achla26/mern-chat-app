@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { registerUserThunk } from "@/redux/thunks/user.thunk";
+import { registerUserThunk } from "@/redux/thunks/auth.thunk";
 import { useNavigate } from "react-router-dom";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import toast from "react-hot-toast";

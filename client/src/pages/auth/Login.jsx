@@ -13,7 +13,7 @@ import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { setAuthToken } from "@/utility/axios/axiosInstance";  // Import setAuthToken function
 
-import { loginUserThunk } from "@/redux/thunks/user.thunk";
+import { loginUserThunk } from "@/redux/thunks/auth.thunk";
 import { toast } from "react-hot-toast";
 import { useNavigation } from "../../hooks/navigation";
 import { Link } from "react-router-dom";

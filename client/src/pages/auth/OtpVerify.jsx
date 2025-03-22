@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux"; 
-import { otpVerifyThunk } from "@/redux/thunks/user.thunk";
+import { otpVerifyThunk } from "@/redux/thunks/auth.thunk";
 import { toast } from "react-hot-toast";
 import { useNavigation } from "../../hooks/navigation";
 import { setAuthToken } from "@/utility/axios/axiosInstance";  // Import setAuthToken function
