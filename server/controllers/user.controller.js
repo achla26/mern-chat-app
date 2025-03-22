@@ -13,6 +13,7 @@ import {
 } from "../services/user.service.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { generateTokens } from "../utils/generateToken.js";
+import jwt from "jsonwebtoken";
 
 export const registerUser = asyncHandler(async (req, res, next) => {
   ErrorValidation(req);
@@ -64,16 +65,15 @@ export const loginUser = asyncHandler(async (req, res) => {
 });
 
 export const logoutUser = asyncHandler(async (req, res) => {
-  const token =
-    req.cookies.token || req.headers.authorization?.replace("Bearer ", "");
-
   return res
     .status(200)
-    .clearCookie("token")
+    .clearCookie("accessToken")
+    .clearCookie("refreshToken")
     .json(new ApiResponse(200, "User Logged Out successfully"));
 });
 
 export const getAllUsers = asyncHandler(async (req, res) => {
+  
   const userId = req.user?._id;
   if (!userId) {
     throw new ApiError(401, "Unauthorized: User ID not found.");

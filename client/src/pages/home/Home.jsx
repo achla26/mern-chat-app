@@ -1,12 +1,20 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import Sidebar from './sidebar/Sidebar'; 
 import ChatArea from './chat/ChatArea';
+import { useSelector, useDispatch } from "react-redux";
+import { getAllUsersThunk , logoutUserThunk} from '@/redux/thunks/user.thunk';
+import { toast } from 'react-hot-toast';
+import { useNavigation } from "../../hooks/navigation";
 
 function Home() {
+  const { navigate} = useNavigation();
+
   const [message, setMessage] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  
+  const [chates, setChats] = useState([]);
+  const dispatch = useDispatch();
+
   const chats = [
     { 
       id: 1, 
@@ -16,22 +24,7 @@ function Home() {
       unread: 2,
       avatar: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=100&h=100&fit=crop&auto=format"
     },
-    { 
-      id: 2, 
-      name: "Design Discussion", 
-      lastMessage: "Let's review the mockups", 
-      timestamp: "9:15 AM", 
-      unread: 0,
-      avatar: "https://images.unsplash.com/photo-1554774853-aae0a22c8aa4?w=100&h=100&fit=crop&auto=format"
-    },
-    { 
-      id: 3, 
-      name: "Marketing Team", 
-      lastMessage: "Campaign updates", 
-      timestamp: "Yesterday", 
-      unread: 5,
-      avatar: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=100&h=100&fit=crop&auto=format"
-    },
+  
   ];
 
   const messages = [
@@ -39,6 +32,29 @@ function Home() {
     { id: 2, content: "It's going well! We're making good progress.", sender: "You", timestamp: "10:31 AM" },
     { id: 3, content: "That's great to hear! Any blockers?", sender: "John", timestamp: "10:32 AM" },
   ];
+
+  //logout functionality
+
+  const handleLogout = async () => {
+    try {
+      const response = await dispatch(logoutUserThunk());   
+      // console.log(response.payload) 
+      if (response?.payload?.success) {  
+        navigate("/login"); // Navigate to the home page
+      }
+    } catch (err) {
+      return toast.error(`An error occurred. ${err}`);
+    }
+  };
+  useEffect(()=>{
+    try {
+      // const response =  dispatch(getAllUsersThunk());  
+      // console.log(response)
+ 
+    } catch (err) {
+      return toast.error(`An error occurred. ${err}`);
+    }
+  },[])
 
   const handleSendMessage = (e) => {
     e.preventDefault();
@@ -75,6 +91,7 @@ function Home() {
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
           chats={chats}
+          logout={()=>handleLogout()}
         />
         <ChatArea 
           messages={messages}

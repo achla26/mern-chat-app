@@ -151,7 +151,6 @@ export const signInService = async (identifier, password, res) => {
   }
 };
 
-
 export const resendOtpService = async (email) => {
   try {
     if ([email].some((field) => !field?.trim())) {
@@ -184,9 +183,10 @@ export const resendOtpService = async (email) => {
 
 export const getAllUsersService = async (userId) => {
   try {
-    const users = await User.find({
-      _id: { $ne: userId },
-    }).select("-password -refreshToken");
+    const users = await User.find({ _id: { $ne: userId } })
+      .select("fullName username profilePicture")
+      .lean(); 
+
     if (!users) {
       throw new ApiError(500, "Error while fetching users.");
     }

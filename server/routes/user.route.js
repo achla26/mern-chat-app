@@ -92,7 +92,7 @@ router.post(
 );
 
 router.get("/profile", isUserAuthenticated, getUserProfile);
-router.get("/logout", isUserAuthenticated, logoutUser);
+router.post("/logout", isUserAuthenticated, logoutUser);
 
 router.get("/all", isUserAuthenticated, getAllUsers);
 router.get("/refresh", refreshToken);

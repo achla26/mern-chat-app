@@ -55,3 +55,8 @@ export const resetPasswordThunk = createThunk(
 export const getUserProfileThunk = createThunk("getProfile", () =>
   axiosInstance.get("/user/profile")
 );
+ 
+
+export const getAllUsersThunk = createThunk("all", () =>
+  axiosInstance.get("/user/all")
+);

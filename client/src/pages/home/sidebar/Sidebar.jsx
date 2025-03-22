@@ -3,7 +3,8 @@ import { Settings, Users, Plus } from 'lucide-react';
 import SearchBar from './SearchBar';
 import ChatList from './ChatList';
 
-function Sidebar({ isOpen, onClose, chats }) {
+function Sidebar({ isOpen, onClose, chats , logout}) {
+  
   return (
     <aside 
       className={`
@@ -22,6 +23,9 @@ function Sidebar({ isOpen, onClose, chats }) {
               <Settings size={20} />
             </button>
             <button className="p-2 hover:bg-gray-700 rounded-full transition-colors">
+              <Users size={20} />
+            </button>
+            <button onClick={logout} className="p-2 hover:bg-gray-700 rounded-full transition-colors">
               <Users size={20} />
             </button>
           </div>
