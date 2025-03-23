@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getUserProfileThunk } from "../thunks/user.thunk";
+import { getCurrentUserThunk } from "../thunks/user.thunk";
 
 const initialState = {
   isAuthenticated: false,
@@ -25,14 +25,14 @@ export const userSlice = createSlice({
   },
   extraReducers: (builder) => {
     // get user profile
-    builder.addCase(getUserProfileThunk.pending, (state, action) => {
+    builder.addCase(getCurrentUserThunk.pending, (state, action) => {
       state.screenLoading = true;
     });
-    builder.addCase(getUserProfileThunk.fulfilled, (state, action) => {
+    builder.addCase(getCurrentUserThunk.fulfilled, (state, action) => {
       state.screenLoading = false;
       state.userProfile = action.payload?.user;
     });
-    builder.addCase(getUserProfileThunk.rejected, (state, action) => {
+    builder.addCase(getCurrentUserThunk.rejected, (state, action) => {
       state.screenLoading = false;
     });
   },

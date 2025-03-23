@@ -15,10 +15,28 @@ export const getAllUsersService = async (userId) => {
     throw error;
   }
 }; 
-export const getProfileService = async (userId) => {
+export const getUserByIdService = async (userId) => {
   try {
-    const profile = await User.findById(userId);
-    return profile;
+    const user = await User.findById(userId);
+    return user;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateUserService = async (userId) => {
+  try {
+    const user = await User.findById(userId);
+    return user;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const searchUsersService = async (userId) => {
+  try {
+    const user = await User.findById(userId);
+    return user;
   } catch (error) {
     throw error;
   }
