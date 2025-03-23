@@ -4,7 +4,7 @@ import {
   sendMessage,
   getUserChats,
   getUserConversation,
-  createGroupChat,
+  createGroup,
 } from "../controllers/message.controller.js";
 import { isUserAuthenticated } from "../middlewares/auth.middleware.js";
 
@@ -39,7 +39,7 @@ router.post(
     body("groupName").notEmpty().withMessage("Group Name is required"),
   ],
   isUserAuthenticated,
-  createGroupChat
+  createGroup
 );
 
 export default router;

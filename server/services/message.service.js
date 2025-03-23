@@ -127,19 +127,19 @@ export const getMessagesByConversationIdService = async (myId, conversationId, p
 };
 
 
-export const createGroupChatService = async (creatorId, members, groupName) => {
+export const createGroupService = async (creatorId, members, groupName) => {
   try {
     if (!creatorId || !members || members.length > 2) {
       throw new ApiError(400, "Creator ID and at least two members are required.");
     }
 
-    const groupChat = await Conversation.create({
+    const group = await Conversation.create({
       members: [creatorId, ...members],
       isGroup: true,
       groupName,
     });
 
-    return groupChat;
+    return group;
   } catch (error) {
     throw error;
   }

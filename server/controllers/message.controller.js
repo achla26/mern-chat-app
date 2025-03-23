@@ -5,7 +5,7 @@ import {
   sendMessageService,
   getUserChatsService,
   getMessagesByConversationIdService,
-  createGroupChatService
+  createGroupService
 } from "../services/message.service.js";
 
 export const sendMessage = asyncHandler(async (req, res, next) => {
@@ -45,11 +45,11 @@ export const getUserConversation = asyncHandler(async (req, res, next) => {
 });
 
 
-export const createGroupChat = asyncHandler(async (req, res, next) => {
+export const createGroup = asyncHandler(async (req, res, next) => {
   const creatorId = req.user._id; 
   const { receiverIds , groupName} = req.body;  
 
-  const group = await createGroupChatService(
+  const group = await createGroupService(
     creatorId,
     receiverIds,
     groupName
