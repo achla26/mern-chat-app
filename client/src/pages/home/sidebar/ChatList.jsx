@@ -1,14 +1,35 @@
 import Spinner from "@/Spinner";
 import { formatTimestamp } from "@/utility/helper";
 import React, { memo } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { setselectedChatId } from "../../../redux/slices/chat.slice";
+import { getUserMessagesThunk} from "@/redux/thunks/chat.thunk";
 
-const ChatList = memo(({ chats, onChatSelect, chatComponentLoading }) => {
+const ChatList = memo(({ chats, chatComponentLoading }) => {
+  const dispatch = useDispatch();
+
+  const { selectedChatId } = useSelector((state) => state.chat);
+
+  const handleUserClick = (chatId) => {
+    dispatch(setselectedChatId(chatId));
+    fetchMessages();
+
+  };
+
+  const fetchMessages = async () => {
+    try {
+      await dispatch(getUserMessagesThunk({chatId:selectedChatId}));
+    } catch (err) {
+      console.error(`An error occurred. ${err}`);
+    }
+  };
+
   console.log("chatlist render");
   return (
     <div className="flex-1 overflow-y-auto">
       {chatComponentLoading ? (
         <div className="flex justify-center items-center h-full">
-          <Spinner /> {/* Replace with your loading component */}
+          <Spinner />
         </div>
       ) : Array.isArray(chats) ? (
         chats.map((chat) => {
@@ -21,8 +42,12 @@ const ChatList = memo(({ chats, onChatSelect, chatComponentLoading }) => {
           return (
             <div
               key={chat._id}
-              className="flex items-center p-4 hover:bg-gray-800 cursor-pointer border-b border-gray-700 transition-colors"
-              onClick={() => onChatSelect(chat._id)}
+              className={`flex items-center p-4 cursor-pointer border-b border-gray-700 transition-colors ${
+                selectedChatId === chat._id
+                  ? "bg-gray-800" // Selected state (hover stays active)
+                  : "hover:bg-gray-800" // Normal hover state
+              }`}
+              onClick={() => handleUserClick(chat._id)}
             >
               <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 mr-3">
                 <img

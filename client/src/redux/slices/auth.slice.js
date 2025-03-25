@@ -73,8 +73,7 @@ export const authSlice = createSlice({
       state.buttonLoading = true;
     });
     builder.addCase(logoutUserThunk.fulfilled, (state, action) => {
-      state.userProfile = null;
-      state.selectedUser = null;
+      state.userProfile = null; 
       state.otherUsers = null;
       state.isAuthenticated = false;
       state.buttonLoading = false;

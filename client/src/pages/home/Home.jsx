@@ -3,12 +3,12 @@ import { Menu, X } from "lucide-react";
 import Sidebar from "./sidebar/Sidebar";
 import ChatArea from "./chat/ChatArea";
 import { useSelector, useDispatch } from "react-redux";
-import { getUserChatsThunk } from "@/redux/thunks/chat.thunk";
+import { getUserChatsThunk , getUserMessagesThunk} from "@/redux/thunks/chat.thunk";
 import { logoutUserThunk } from "@/redux/thunks/auth.thunk";
 import { toast } from "react-hot-toast";
 import { useNavigation } from "../../hooks/navigation";
 function Home() {
-  const { chats, chatComponentLoading } = useSelector((state) => state.chat);
+  const { chats, chatComponentLoading ,  chatAreaComponentLoading } = useSelector((state) => state.chat);
   const { navigate } = useNavigation();
 
   const [message, setMessage] = useState("");
@@ -36,7 +36,7 @@ function Home() {
     },
   ];
 
-  //logout functionality
+  // logout functionality
 
   const logout = useCallback(async () => {
     try {
@@ -57,6 +57,20 @@ function Home() {
     };
 
     fetchChats();
+  }, [dispatch]);
+
+
+  
+  useEffect(() => {
+    const fetchMessages = async () => {
+      try {
+        await dispatch(getUserMessagesThunk());
+      } catch (err) {
+        toast.error(`An error occurred. ${err}`);
+      }
+    };
+
+    fetchMessages();
   }, [dispatch]);
 
   const handleSendMessage = (e) => {

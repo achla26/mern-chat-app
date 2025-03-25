@@ -33,7 +33,7 @@ const  Sidebar = memo(({ isOpen, onClose, chats , logout , chatComponentLoading}
         <SearchBar />
       </div>
 
-      <ChatList chats={chats} onChatSelect={onClose} chatComponentLoading={chatComponentLoading}/>
+      <ChatList chats={chats} chatComponentLoading={chatComponentLoading}/>
 
       <button className="m-4 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 px-4 transition-colors">
         <Plus size={20} />
