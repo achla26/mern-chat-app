@@ -1,10 +1,10 @@
-import React from 'react';
+import React , {memo} from 'react';
 import { Settings, Users, Plus } from 'lucide-react';
 import SearchBar from './SearchBar';
 import ChatList from './ChatList';
 
-function Sidebar({ isOpen, onClose, chats , logout , chatComponentLoading}) {
-  
+const  Sidebar = memo(({ isOpen, onClose, chats , logout , chatComponentLoading})=> {
+  console.log("Sidebar")
   return (
     <aside 
       className={`
@@ -41,6 +41,6 @@ function Sidebar({ isOpen, onClose, chats , logout , chatComponentLoading}) {
       </button>
     </aside>
   );
-}
+});
 
 export default Sidebar;

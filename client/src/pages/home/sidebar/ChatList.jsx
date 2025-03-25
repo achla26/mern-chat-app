@@ -1,7 +1,9 @@
 import Spinner from "@/Spinner";
 import { formatTimestamp } from "@/utility/helper";
-function ChatList({ chats, onChatSelect, chatComponentLoading }) {
-  // console.log(object)
+import React, { memo } from "react";
+
+const ChatList = memo(({ chats, onChatSelect, chatComponentLoading }) => {
+  console.log("chatlist render");
   return (
     <div className="flex-1 overflow-y-auto">
       {chatComponentLoading ? (
@@ -38,7 +40,7 @@ function ChatList({ chats, onChatSelect, chatComponentLoading }) {
                 <div className="flex justify-between items-center mb-1">
                   <h3 className="font-semibold truncate">{chat.chatName}</h3>
                   <span className="text-xs text-gray-400 ml-2 flex-shrink-0">
-                    {chat.timestamp}
+                    {formatTimestamp(chat.createdAt)}
                   </span>
                 </div>
                 <p className="text-sm text-gray-400 truncate">
@@ -60,5 +62,5 @@ function ChatList({ chats, onChatSelect, chatComponentLoading }) {
       )}
     </div>
   );
-}
+});
 export default ChatList;
