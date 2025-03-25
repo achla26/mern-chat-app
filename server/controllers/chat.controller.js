@@ -2,7 +2,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import {
   getChatsService,
-  createPrivateChatService,
+  createConversationService,
   sendMessageService,
   deleteChatService,
   getMessagesByConversationIdService,
@@ -15,11 +15,11 @@ import {
 export const getChats = asyncHandler(async (req, res) => {
   const userId = req.user._id; // Get the authenticated user's ID
 
-  const chats = await getChatsService(userId);
+  const data = await getChatsService(userId);
 
   return res
     .status(200)
-    .json(new ApiResponse(200, { chats }, "Chats fetched successfully."));
+    .json(new ApiResponse(200, { data }, "Chats fetched successfully."));
 });
 
 /**
@@ -29,11 +29,11 @@ export const createChat = asyncHandler(async (req, res) => {
   const userId = req.user._id; // Get the authenticated user's ID
   const { receiverId } = req.body; // Get the receiver's ID from the request body
 
-  const chat = await createPrivateChatService(userId, receiverId);
+  const data = await createConversationService(userId, receiverId);
 
   return res
     .status(201)
-    .json(new ApiResponse(201, { chat }, "Private chat created successfully."));
+    .json(new ApiResponse(201, { data }, "Private chat created successfully."));
 });
 
 /**
@@ -43,7 +43,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
   const senderId = req.user._id; // Get the authenticated user's ID
   const { receiverIds, message, isGroup } = req.body; // Get receiver IDs, message, and chat type
 
-  const newMessage = await sendMessageService(
+  const data = await sendMessageService(
     senderId,
     receiverIds,
     message,
@@ -52,7 +52,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
 
   return res
     .status(201)
-    .json(new ApiResponse(201, { newMessage }, "Message sent successfully."));
+    .json(new ApiResponse(201, { data }, "Message sent successfully."));
 });
 
 /**
@@ -62,11 +62,11 @@ export const deleteChat = asyncHandler(async (req, res) => {
   const userId = req.user._id; // Get the authenticated user's ID
   const { chatId } = req.params; // Get the chat ID from the request params
 
-  const deletedChat = await deleteChatService(chatId, userId);
+  const data = await deleteChatService(chatId, userId);
 
   return res
     .status(200)
-    .json(new ApiResponse(200, { deletedChat }, "Chat deleted successfully."));
+    .json(new ApiResponse(200, { data }, "Chat deleted successfully."));
 });
 
 /**
@@ -76,12 +76,12 @@ export const markMessagesAsRead = asyncHandler(async (req, res) => {
   const userId = req.user._id; // Get the authenticated user's ID
   const { chatId } = req.params; // Get the chat ID from the request params
 
-  const updatedChat = await markMessagesAsReadService(chatId, userId);
+  const data = await markMessagesAsReadService(chatId, userId);
 
   return res
     .status(200)
     .json(
-      new ApiResponse(200, { updatedChat }, "Messages marked as read successfully.")
+      new ApiResponse(200, { data }, "Messages marked as read successfully.")
     );
 });
 
@@ -92,7 +92,7 @@ export const getMessagesByConversationId = asyncHandler(async (req, res) => {
   const { chatId } = req.params; // Get the conversation ID from the request params
   const { page = 1, limit = 20 } = req.query; // Get pagination parameters
 
-  const messages = await getMessagesByConversationIdService(
+  const data = await getMessagesByConversationIdService(
     chatId,
     parseInt(page),
     parseInt(limit)
@@ -100,6 +100,6 @@ export const getMessagesByConversationId = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, { messages }, "Messages fetched successfully."));
+    .json(new ApiResponse(200, { data }, "Messages fetched successfully."));
 });
  

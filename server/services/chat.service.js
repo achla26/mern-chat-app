@@ -1,11 +1,12 @@
 import { Message } from "../models/message.model.js";
+import { User } from "../models/user.model.js";
 import { Conversation } from "../models/conversation.model.js";
 import { ApiError } from "../utils/ApiError.js";
 
 /**
- * Get all chats for a user.
+ * Get all chats for a user, including the chat name (group name or other person's name).
  * @param {string} userId - The ID of the user.
- * @returns {Promise<Array>} - The list of conversations.
+ * @returns {Promise<Array>} - The list of conversations with chat names.
  */
 export const getChatsService = async (userId) => {
   try {
@@ -14,12 +15,65 @@ export const getChatsService = async (userId) => {
       members: userId,
     }).populate("lastMessage"); // Populate last message to get message details
 
-    return conversations;
+    // Fetch all users involved in the chats
+    const userIds = conversations.flatMap((chat) => chat.members); // Get all user IDs from all chats
+
+    const uniqueUserIds = userIds.reduce((acc, current) => {
+      const exists = acc.some((id) => id.equals(current));
+      return exists ? acc : [...acc, current];
+    }, []);
+
+    const users = await User.find({ _id: { $in: uniqueUserIds } }).select(
+      "_id fullName"
+    ); // Fetch user details
+
+    // Create a map of user IDs to user objects for quick lookup
+    const usersMap = users.reduce((map, user) => {
+      map[user._id.toString()] = user;
+      return map;
+    }, {});
+
+    // Add chat names to each conversation
+    const chats = conversations.map((chat) => {
+      const chatName = chat.isGroup
+        ? chat.groupName || "Group Chat" // Group chat name
+        : (() => {
+            // Private chat: Find the other user's name
+            const otherUserId = chat.members.find(
+              (member) => member.toString() !== userId
+            );
+            const otherUser = usersMap[otherUserId.toString()];
+            return otherUser?.fullName || "Unknown User";
+          })();
+
+      return {
+        ...chat.toObject(), // Spread the chat object
+        chatName, // Add the chat name
+      };
+    });
+console.log(chats)
+    return chats;
   } catch (error) {
-    throw new Error("Error while fetching conversations: " + error.message);
+    throw new ApiError(
+      500,
+      "Error while fetching conversations: " + error.message
+    );
   }
 };
 
+export const FindConversation = async (senderId,receiverIds, isGroup = false) => {
+  let members = [senderId, receiverIds[0]];
+  if (isGroup) {
+    members = [senderId, ...receiverIds];
+  }
+
+  let conversation = await Conversation.findOne({
+    members: { $all: members },
+    isGroup,
+  });
+
+  return conversation;
+};
 
 /**
  * Create a new private chat.
@@ -27,34 +81,29 @@ export const getChatsService = async (userId) => {
  * @param {string} receiverId - The ID of the receiver.
  * @returns {Promise<Object>} - The created conversation.
  */
-export const createPrivateChatService = async (userId, receiverId) => {
-  try {
-    // Validate input
-    if (!userId || !receiverId) {
-      throw new ApiError(400, "User ID and receiver ID are required.");
-    }
-
-    // Check if a conversation already exists
-    const existingConversation = await Conversation.findOne({
-      members: { $all: [userId, receiverId] },
-      isGroup: false,
-    });
+export const createConversationService = async (senderId, receiverIds , isGroup = false) => {
+  try { 
+    let existingConversation = await FindConversation(senderId , receiverIds , isGroup);
 
     if (existingConversation) {
       return existingConversation;
     }
 
     // Create a new conversation
-    const newConversation = await Conversation.create({
-      members: [userId, receiverId],
-      isGroup: false,
+
+    const conversation = await Conversation.create({
+      members: isGroup
+        ? [senderId, ...receiverIds]
+        : [senderId, receiverIds[0]],
+      isGroup,
     });
 
-    return newConversation;
+    return conversation;
   } catch (error) {
     throw error;
   }
 };
+
 /**
  * Send a message in a chat (private or group).
  * @param {string} senderId - The ID of the sender.
@@ -82,31 +131,12 @@ export const sendMessageService = async (
       );
     }
 
-    // Find or create a conversation
-    let conversation;
-    if (isGroup) {
-      // For group chats, use the receiverIds as members
-      conversation = await Conversation.findOne({
-        members: { $all: [senderId, ...receiverIds] },
-        isGroup: true,
-      });
-    } else {
-      // For private chats, find a conversation between two users
-      conversation = await Conversation.findOne({
-        members: { $all: [senderId, receiverIds[0]] },
-        isGroup: false,
-      });
-    }
-
+    let conversation = await FindConversation(senderId , receiverIds , isGroup); 
+    
     // If no conversation exists, create one
     if (!conversation) {
-      conversation = await Conversation.create({
-        members: isGroup
-          ? [senderId, ...receiverIds]
-          : [senderId, receiverIds[0]],
-        isGroup,
-      });
-    }
+      conversation = await createConversationService(senderId , receiverIds , isGroup);
+    } 
 
     // Create the message
     const newMessage = await Message.create({
@@ -190,7 +220,6 @@ export const getMessagesByConversationIdService = async (
   }
 };
 
-
 /**
  * Add a member to a group chat.
  * @param {string} chatId - The ID of the group chat.
@@ -241,7 +270,7 @@ export const removeMemberFromGroupService = async (chatId, memberId) => {
   } catch (error) {
     throw error;
   }
-}; 
+};
 
 /**
  * Delete a chat by ID.
