@@ -1,6 +1,7 @@
 import { Message } from "../models/message.model.js";
 import { User } from "../models/user.model.js";
 import { Conversation } from "../models/conversation.model.js";
+import mongoose from "mongoose";
 import { ApiError } from "../utils/ApiError.js";
 
 /**
@@ -10,48 +11,54 @@ import { ApiError } from "../utils/ApiError.js";
  */
 export const getChatsService = async (userId) => {
   try {
-    // Fetch all conversations where the user is a participant
+    // Fetch conversations with last message populated
     const conversations = await Conversation.find({
       members: userId,
-    }).populate("lastMessage"); // Populate last message to get message details
+    }).populate("lastMessage");
 
-    // Fetch all users involved in the chats
-    const userIds = conversations.flatMap((chat) => chat.members); // Get all user IDs from all chats
+    // Get unique user IDs from all chats
+    const userIds = conversations.flatMap((chat) => chat.members); 
 
-    const uniqueUserIds = userIds.reduce((acc, current) => {
-      const exists = acc.some((id) => id.equals(current));
-      return exists ? acc : [...acc, current];
-    }, []);
+    const uniqueUserIds = [...new Set(userIds.map(id => id.toString()))]
+      .map(id => new mongoose.Types.ObjectId(id));
 
-    const users = await User.find({ _id: { $in: uniqueUserIds } }).select(
-      "_id fullName"
-    ); // Fetch user details
+    // Fetch user details
+    const users = await User.find({ _id: { $in: uniqueUserIds } })
+      .select("_id fullName avatar");
 
-    // Create a map of user IDs to user objects for quick lookup
+    // Create user map for quick lookup
     const usersMap = users.reduce((map, user) => {
       map[user._id.toString()] = user;
       return map;
     }, {});
 
-    // Add chat names to each conversation
+    // Format chats with essential data
     const chats = conversations.map((chat) => {
-      const chatName = chat.isGroup
-        ? chat.groupName || "Group Chat" // Group chat name
-        : (() => {
-            // Private chat: Find the other user's name
-            const otherUserId = chat.members.find(
-              (member) => member.toString() !== userId
-            );
-            const otherUser = usersMap[otherUserId.toString()];
-            return otherUser?.fullName || "Unknown User";
-          })();
+      const isGroup = chat.isGroup;
+      const otherUserId = isGroup 
+        ? null 
+        : chat.members.find(member => member.toString() !== userId);
+      
+      const lastMessageContent = chat.lastMessage?.message 
+        ? chat.lastMessage.message.substring(0, 30) + (chat.lastMessage.message.length > 30 ? '...' : '')
+        : 'No messages yet';
 
       return {
-        ...chat.toObject(), // Spread the chat object
-        chatName, // Add the chat name
+        _id: chat._id,
+        isGroup,
+        chatName: isGroup
+          ? chat.groupName || "Group Chat"
+          : usersMap[otherUserId?.toString()]?.fullName || "Unknown User",
+        avatar: isGroup
+          ? chat.groupAvatar
+          : usersMap[otherUserId?.toString()]?.avatar,
+        lastMessage: lastMessageContent,
+        unreadCount: chat.unreadCount || 0,
+        members: chat.members,
+        createdAt: chat.createdAt
       };
     });
-console.log(chats)
+
     return chats;
   } catch (error) {
     throw new ApiError(

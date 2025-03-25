@@ -6,7 +6,7 @@ import { createThunk, handleThunkError } from "@/utility/thunkUtil";
 
 export const getUserChatsThunk = createThunk(
   "getUserChats",
-  (payload) => axiosInstance.post(_,"/message/chats", payload),
+  (payload) => axiosInstance.get("/chats", payload),
   "fetch Chats successfully!"
 );
  

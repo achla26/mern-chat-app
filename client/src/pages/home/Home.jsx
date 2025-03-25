@@ -3,29 +3,30 @@ import { Menu, X } from 'lucide-react';
 import Sidebar from './sidebar/Sidebar'; 
 import ChatArea from './chat/ChatArea';
 import { useSelector, useDispatch } from "react-redux"; 
-import { getUserChatsThunk } from '@/redux/thunks/message.thunk';
+import { getUserChatsThunk } from '@/redux/thunks/chat.thunk';
 import { toast } from 'react-hot-toast';
 import { useNavigation } from "../../hooks/navigation";
-
 function Home() {
+   const { chats , chatComponentLoading} = useSelector(
+    (state) => state.chat
+  );
   const { navigate} = useNavigation();
 
   const [message, setMessage] = useState('');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [chates, setChats] = useState([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
   const dispatch = useDispatch();
 
-  const chats = [
-    { 
-      id: 1, 
-      name: "Team Project", 
-      lastMessage: "Great work everyone!", 
-      timestamp: "10:30 AM", 
-      unread: 2,
-      avatar: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=100&h=100&fit=crop&auto=format"
-    },
+  // const chats = [
+  //   { 
+  //     id: 1, 
+  //     name: "Team Project", 
+  //     lastMessage: "Great work everyone!", 
+  //     timestamp: "10:30 AM", 
+  //     unread: 2,
+  //     avatar: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=100&h=100&fit=crop&auto=format"
+  //   },
   
-  ];
+  // ];
 
   const messages = [
     { id: 1, content: "Hi there! How's the project going?", sender: "John", timestamp: "10:30 AM" },
@@ -50,7 +51,7 @@ function Home() {
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        await dispatch(getUserChatsThunk());
+        dispatch(getUserChatsThunk()); 
       } catch (err) {
         toast.error(`An error occurred. ${err}`);
       }
@@ -95,6 +96,7 @@ function Home() {
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
           chats={chats}
+          chatComponentLoading={chatComponentLoading}
           logout={()=>handleLogout()}
         />
         <ChatArea 
