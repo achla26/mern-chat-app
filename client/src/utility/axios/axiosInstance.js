@@ -1,6 +1,6 @@
 import axios from "axios";
 import store from "@/redux/store";
-import { setAccessToken } from "@/redux/slices/user.slice";
+import { setTokens } from "@/redux/slices/auth.slice";
 import Cookies from "js-cookie";
 
 const DB_URL = import.meta.env.VITE_DB_URL;
@@ -15,15 +15,16 @@ const axiosInstance = axios.create({
 
 const setAuthToken = (token) => {
   if (token) {
-    store.dispatch(setAccessToken(token));
+    store.dispatch(setTokens({
+      accessToken: token,
+      refreshToken: Cookies.get('refreshToken')// Preserve existing refresh token
+    }));
     axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    Cookies.set("accessToken", token, { expires: 1 });
- 
   } else {
-    store.dispatch(setAccessToken(null));
+    store.dispatch(clearTokens());
     delete axiosInstance.defaults.headers.common["Authorization"];
   }
-};
+}; 
 
 let isRefreshing = false;
 let refreshSubscribers = [];
