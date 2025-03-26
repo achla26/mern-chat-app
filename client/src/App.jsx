@@ -1,23 +1,13 @@
 import { useEffect } from "react"; 
 import { Toaster } from "react-hot-toast";
-import { useDispatch } from "react-redux";
-// import { getUserProfileThunk } from "./redux/thunks/user.thunk";
+import { useDispatch } from "react-redux"; 
 import { useTheme } from './context/ThemeContext';
 import { Menu, X, Sun, Moon } from 'lucide-react';
 function App() {
-  
-  // const dispatch = useDispatch();
-
-  // useEffect(() => {
-  //   (async () => {
-  //     await dispatch(getUserProfileThunk());
-  //   })();
-  // }, []);
-
   const { isDark, toggleTheme } = useTheme();
   return (
     <>
-      <div className="h-screen w-screen overflow-hidden bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+      <div className="w-screen overflow-hidden bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {/* Theme Toggle Button */}
       <button 
         onClick={toggleTheme}
