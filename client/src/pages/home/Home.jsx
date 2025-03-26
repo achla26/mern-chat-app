@@ -3,38 +3,47 @@ import { Menu, X } from "lucide-react";
 import Sidebar from "./sidebar/Sidebar";
 import ChatArea from "./chat/ChatArea";
 import { useSelector, useDispatch } from "react-redux";
-import { getUserChatsThunk , getUserMessagesThunk} from "@/redux/thunks/chat.thunk";
+import {
+  getUserChatsThunk,
+  getUserMessagesThunk,
+} from "@/redux/thunks/chat.thunk";
 import { logoutUserThunk } from "@/redux/thunks/auth.thunk";
 import { toast } from "react-hot-toast";
 import { useNavigation } from "../../hooks/navigation";
 function Home() {
-  const { chats, chatComponentLoading ,  chatAreaComponentLoading } = useSelector((state) => state.chat);
+  const {
+    chats,
+    chatListComponentLoading,
+    chatAreaComponentLoading,
+    selectedChatId,
+    messages,
+  } = useSelector((state) => state.chat);
   const { navigate } = useNavigation();
-
-  const [message, setMessage] = useState("");
+ 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [msg, setMessage] = useState(false);
   const dispatch = useDispatch();
 
-  const messages = [
-    {
-      id: 1,
-      content: "Hi there! How's the project going?",
-      sender: "John",
-      timestamp: "10:30 AM",
-    },
-    {
-      id: 2,
-      content: "It's going well! We're making good progress.",
-      sender: "You",
-      timestamp: "10:31 AM",
-    },
-    {
-      id: 3,
-      content: "That's great to hear! Any blockers?",
-      sender: "John",
-      timestamp: "10:32 AM",
-    },
-  ];
+  // const messages = [
+  //   {
+  //     id: 1,
+  //     content: "Hi there! How's the project going?",
+  //     sender: "John",
+  //     timestamp: "10:30 AM",
+  //   },
+  //   {
+  //     id: 2,
+  //     content: "It's going well! We're making good progress.",
+  //     sender: "You",
+  //     timestamp: "10:31 AM",
+  //   },
+  //   {
+  //     id: 3,
+  //     content: "That's great to hear! Any blockers?",
+  //     sender: "John",
+  //     timestamp: "10:32 AM",
+  //   },
+  // ];
 
   // logout functionality
 
@@ -59,23 +68,20 @@ function Home() {
     fetchChats();
   }, [dispatch]);
 
-
-  
-  useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        await dispatch(getUserMessagesThunk());
-      } catch (err) {
-        toast.error(`An error occurred. ${err}`);
+    // Fetch messages when selected chat changes
+    useEffect(() => {
+      if (selectedChatId) {
+        dispatch(getUserMessagesThunk({ chatId: selectedChatId }));
       }
-    };
-
-    fetchMessages();
-  }, [dispatch]);
+    }, [selectedChatId, dispatch]);
+  
+    // Get current chat messages
+    const currentMessages = selectedChatId ? messages[selectedChatId] : [];
+ 
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (message.trim()) { 
+    if (message.trim()) {
       setMessage("");
     }
   };
@@ -108,11 +114,11 @@ function Home() {
           onClose={toggleSidebar}
           chats={chats}
           logout={logout}
-          chatComponentLoading={chatComponentLoading}
+          selectedChatId={selectedChatId}
+          chatListComponentLoading={chatListComponentLoading}
         />
         <ChatArea
-          messages={messages}
-          message={message}
+          messages={currentMessages} 
           setMessage={setMessage}
           handleSendMessage={handleSendMessage}
         />

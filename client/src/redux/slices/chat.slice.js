@@ -2,7 +2,6 @@ import { createSlice } from "@reduxjs/toolkit";
 import { getUserChatsThunk, getUserMessagesThunk } from "../thunks/chat.thunk";
 import { safeSessionStorage } from "@/utility/helper";
 
-
 const getInitialselectedChatId = () => {
   try {
     const selectedChatId = safeSessionStorage.getItem("selectedChatId");
@@ -17,9 +16,9 @@ const initialState = {
   chats: {},
   messages: {},
   chatScreenLoading: true,
-  chatAreaScreenLoading: true,
+  chatAreaComponentLoading: true,
   chatButtonLoading: false,
-  chatComponentLoading: true,
+  chatListComponentLoading: true,
   selectedChatId: getInitialselectedChatId(),
 };
 
@@ -52,21 +51,22 @@ export const chatSlice = createSlice({
     // get user chats
     builder.addCase(getUserChatsThunk.pending, (state, action) => {});
     builder.addCase(getUserChatsThunk.fulfilled, (state, action) => {
-      state.chatComponentLoading = false;
+      state.chatListComponentLoading = false;
       state.chats = action.payload.data;
     });
     builder.addCase(getUserChatsThunk.rejected, (state, action) => {
-      state.chatComponentLoading = false;
+      state.chatListComponentLoading = false;
     });
 
     // get user chat messages
     builder.addCase(getUserMessagesThunk.pending, (state, action) => {});
-    builder.addCase(getUserMessagesThunk.fulfilled, (state, action) => {
-      state.chatAreaScreenLoading = false;
-      state.messages = action.payload.data;
+    builder.addCase(getUserMessagesThunk.fulfilled, (state, action) => { 
+      const { chatId, messages } = action.payload.data;
+      state.messages[chatId] = messages; // Store messages by chatId
+      state.chatAreaComponentLoading = false;
     });
     builder.addCase(getUserMessagesThunk.rejected, (state, action) => {
-      state.chatComponentLoading = false;
+      state.chatListComponentLoading = false;
     });
   },
 });

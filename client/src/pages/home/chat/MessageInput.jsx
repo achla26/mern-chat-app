@@ -15,7 +15,7 @@ function MessageInput({ message, setMessage, onSubmit }) {
         <button
           type="submit"
           className="p-2 bg-blue-600 hover:bg-blue-700 rounded-full flex-shrink-0 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={!message.trim()}
+          disabled={!message}
         >
           <Send size={20} />
         </button>

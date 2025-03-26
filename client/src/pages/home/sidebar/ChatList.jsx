@@ -1,33 +1,23 @@
 import Spinner from "@/Spinner";
 import { formatTimestamp } from "@/utility/helper";
 import React, { memo } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import { setselectedChatId } from "../../../redux/slices/chat.slice";
 import { getUserMessagesThunk} from "@/redux/thunks/chat.thunk";
 
-const ChatList = memo(({ chats, chatComponentLoading }) => {
+const ChatList = memo(({ chats, chatListComponentLoading , selectedChatId}) => {
   const dispatch = useDispatch();
-
-  const { selectedChatId } = useSelector((state) => state.chat);
+ 
 
   const handleUserClick = (chatId) => {
-    dispatch(setselectedChatId(chatId));
-    fetchMessages();
-
+    dispatch(setselectedChatId(chatId)); 
   };
-
-  const fetchMessages = async () => {
-    try {
-      await dispatch(getUserMessagesThunk({chatId:selectedChatId}));
-    } catch (err) {
-      console.error(`An error occurred. ${err}`);
-    }
-  };
+ 
 
   console.log("chatlist render");
   return (
     <div className="flex-1 overflow-y-auto">
-      {chatComponentLoading ? (
+      {chatListComponentLoading ? (
         <div className="flex justify-center items-center h-full">
           <Spinner />
         </div>

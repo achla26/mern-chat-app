@@ -215,6 +215,7 @@ export const getMessagesByConversationIdService = async (
 
     return {
       messages,
+      chatId : conversationId,
       pagination: {
         currentPage: page,
         totalPages,

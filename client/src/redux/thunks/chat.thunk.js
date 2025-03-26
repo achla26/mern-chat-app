@@ -1,5 +1,5 @@
 import { axiosInstance } from "@/utility/axios/axiosInstance";
-import { createThunk, handleThunkError } from "@/utility/thunkUtil";
+import { createThunk } from "@/utility/thunkUtil";
  
 
 export const getUserChatsThunk = createThunk(

@@ -3,8 +3,8 @@ import { toast } from "react-hot-toast";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
 export const createThunk = (type, apiCall, successMessage) =>
-  createAsyncThunk(`user/${type}`, async (payload, { rejectWithValue }) => {
-    try {
+  createAsyncThunk(type, async (payload, { rejectWithValue }) => {
+    try { 
       const response = await apiCall(payload);
       if (successMessage) toast.success(successMessage);
       return response.data;
