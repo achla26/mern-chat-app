@@ -1,14 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
-import authReducer from "@/redux/slices/auth.slice";
-import userReducer from "@/redux/slices/user.slice";
-import chatReducer from "@/redux/slices/chat.slice";
+import rootReducer from "./rootReducer";
 
 const store = configureStore({
-  reducer: {
-    auth: authReducer,
-    user: userReducer,
-    chat: chatReducer,
-  },
+  reducer: rootReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: false,
+    }),
 });
 
 export default store;
