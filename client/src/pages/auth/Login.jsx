@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { setAuthToken } from "@/utility/axios/axiosInstance";  // Import setAuthToken function
+import { setAuthUser } from "@/redux/slices/auth.slice";
 
 import { loginUserThunk } from "@/redux/thunks/auth.thunk";
 import { toast } from "react-hot-toast";
@@ -38,9 +39,10 @@ const Login = ({ className, ...props }) => {
     try {
       const response = await dispatch(loginUserThunk(loginData)); // Assuming loginUserThunk dispatches the login API request
   
-      if (response?.payload?.success) { 
+      if (response?.payload?.success) {  
         const token = response.payload.accessToken; // Replace with actual token from API response
-        setAuthToken(token);  // Set the token in Redux and axios headers
+        setAuthToken(token);
+        dispatch(setAuthUser(response.payload.user));  
         navigate("/"); // Navigate to the home page
       }
     } catch (err) {

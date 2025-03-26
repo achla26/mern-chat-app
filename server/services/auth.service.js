@@ -123,7 +123,7 @@ export const signInService = async (identifier, password, res) => {
     // Find the user by email or username
     const user = await User.findOne({
       $or: [{ email: identifier }, { username: identifier }],
-    }).select("+password");
+    }).select("+password -__v -createdAt -updatedAt");
 
     if (!user) {
       throw new ApiError(400, "User does not exist.");
@@ -146,7 +146,17 @@ export const signInService = async (identifier, password, res) => {
     user.lastLogin = new Date();
     await user.save();
 
-    return { user, accessToken };
+    return {
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        fullName: user.fullName,
+        avatar: user.avatar, 
+        lastLogin: user.lastLogin,
+      },
+      accessToken,
+    };
   } catch (error) {
     throw error;
   }
@@ -180,7 +190,7 @@ export const resendOtpService = async (email) => {
   } catch (error) {
     throw error;
   }
-}; 
+};
 export const forgotPasswordService = async (email) => {
   try {
     if ([email].some((field) => !field?.trim())) {
@@ -244,19 +254,25 @@ export const resetPasswordService = async (
     throw error;
   }
 };
- 
+
 export const refreshTokenService = async (refreshTokenFromCookie) => {
-try { 
-    if (!refreshTokenFromCookie) throw new ApiError(401, "No refresh token provided.");
+  try {
+    if (!refreshTokenFromCookie)
+      throw new ApiError(401, "No refresh token provided.");
 
-    const decoded = jwt.verify(refreshTokenFromCookie, process.env.JWT_REFRESH_TOKEN_SECRET);
+    const decoded = jwt.verify(
+      refreshTokenFromCookie,
+      process.env.JWT_REFRESH_TOKEN_SECRET
+    );
     if (!decoded?.userId) throw new ApiError(403, "Invalid refresh token.");
- 
-    const { accessToken, refreshToken } = await generateTokens(decoded.userId, res);
- 
-    res.json({ accessToken });
 
+    const { accessToken, refreshToken } = await generateTokens(
+      decoded.userId,
+      res
+    );
+
+    res.json({ accessToken });
   } catch (error) {
     res.status(error.statusCode || 500).json({ message: error.message });
   }
-}
+};

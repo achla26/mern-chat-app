@@ -7,11 +7,12 @@ import {
   logoutUserThunk,
 } from "../thunks/auth.thunk";
 import Cookies from "js-cookie";
-
+import { safeLocalStorage } from "@/utility/helper";
+ 
 const loadInitialState = () => {
   const accessToken = Cookies.get("accessToken");
   const refreshToken = Cookies.get("refreshToken");
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(safeLocalStorage.getItem("user"));
 
   return {
     user: user || null,
@@ -29,9 +30,9 @@ export const authSlice = createSlice({
   name: "auth",
   initialState: loadInitialState(),
   reducers: {
-    setUser: (state, action) => {
+    setAuthUser: (state, action) => { 
       state.user = action.payload;
-      localStorage.setItem("user", JSON.stringify(action.payload));
+      safeLocalStorage.setItem("user", JSON.stringify(action.payload));
     },
     setTokens: (state, action) => {
       const { accessToken, refreshToken ,axiosInstance } = action.payload;
@@ -134,6 +135,6 @@ export const authSlice = createSlice({
 });
 
 // Action creators are generated for each case reducer function
-export const { setTokens, clearTokens, logout } = authSlice.actions;
+export const { setTokens, clearTokens, setAuthUser, logout } = authSlice.actions;
 
 export default authSlice.reducer;

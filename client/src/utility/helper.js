@@ -22,3 +22,23 @@ export const safeSessionStorage = {
     }
   },
 };
+
+
+// Safe sessionStorage helper functions
+export const safeLocalStorage = {
+  getItem: (key) => {
+    try {
+      return localStorage.getItem(key);
+    } catch (error) {
+      console.error("localStorage getItem error:", error);
+      return null;
+    }
+  },
+  setItem: (key, value) => {
+    try {
+      localStorage.setItem(key, value);
+    } catch (error) {
+      console.error("localStorage setItem error:", error);
+    }
+  },
+};
