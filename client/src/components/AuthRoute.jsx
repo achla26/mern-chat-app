@@ -1,19 +1,19 @@
-// src/components/ProtectedRoute.jsx
+// src/components/AuthRoute.jsx
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
-const ProtectedRoute = ({ children }) => {
+const AuthRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isAuthenticated()) {
-      navigate("/login");
+    if (isAuthenticated()) {
+      navigate("/");
     }
   }, [isAuthenticated, navigate]);
 
   return children;
 };
 
-export default ProtectedRoute;
+export default AuthRoute;

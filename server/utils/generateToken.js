@@ -20,15 +20,15 @@ export const generateTokens = async (userId, res) => {
 
     // Store Refresh Token in HTTP-Only Cookie
     res.cookie("refreshToken", refreshToken, {
-      httpOnly: true, // Secure from XSS
-      sameSite: "strict", // Prevent CSRF
+      httpOnly: false, // true if Secure from XSS
+      sameSite: "strict", //  Prevent CSRF
       secure: process.env.NODE_ENV === "production",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
      // Store Access Token in HTTP-Only Cookie
      res.cookie("accessToken", accessToken, {
-      httpOnly: true, // Secure from XSS
+      httpOnly: false, // true if Secure from XSS
       sameSite: "strict", // Prevent CSRF
       secure: process.env.NODE_ENV === "production",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days

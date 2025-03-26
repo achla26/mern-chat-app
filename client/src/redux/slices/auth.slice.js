@@ -35,24 +35,21 @@ export const authSlice = createSlice({
       safeLocalStorage.setItem("user", JSON.stringify(action.payload));
     },
     setTokens: (state, action) => {
-      const { accessToken, refreshToken ,axiosInstance } = action.payload;
+      const { accessToken, refreshToken } = action.payload;
 
       // Update Redux state
       state.accessToken = accessToken;
       state.refreshToken = refreshToken;
 
       // Set cookies
-      Cookies.set("accessToken", accessToken, {
-        secure: true,
-        sameSite: "strict",
-        expires: 1, // 1 day expiry for access token
+      Cookies.set("accessToken", accessToken, { 
+        expires: 1, // 1 day expiry
       });
-
-      Cookies.set("refreshToken", refreshToken, {
-        secure: true,
-        sameSite: "strict",
-        expires: 7, // 7 days expiry for refresh token
-      }); 
+      
+      Cookies.set("refreshToken", refreshToken, { 
+        expires: 7, // 7 days expiry
+      });
+      
     },
     clearTokens: (state) => {
       // Clear Redux state
