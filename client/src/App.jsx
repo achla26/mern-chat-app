@@ -1,8 +1,6 @@
-import { useEffect } from "react"; 
-import { Toaster } from "react-hot-toast";
-import { useDispatch } from "react-redux"; 
+import { Toaster } from "react-hot-toast"; 
 import { useTheme } from './context/ThemeContext';
-import { Menu, X, Sun, Moon } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 function App() {
   const { isDark, toggleTheme } = useTheme();
   return (
