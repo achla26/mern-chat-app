@@ -4,12 +4,13 @@ import Sidebar from "./sidebar/Sidebar";
 import ChatArea from "./chat/ChatArea";
 import { useSelector, useDispatch } from "react-redux";
 import {
-  getUserChatsThunk,
+  getUserChatsThunk, 
   getUserMessagesThunk,
 } from "@/redux/thunks/chat.thunk";
 import { logoutUserThunk } from "@/redux/thunks/auth.thunk";
 import { toast } from "react-hot-toast";
 import { useNavigation } from "../../hooks/navigation";
+
 function Home() {
   const {
     chats,
@@ -19,11 +20,10 @@ function Home() {
     messages,
   } = useSelector((state) => state.chat);
   const { navigate } = useNavigation();
- 
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [msg, setMessage] = useState(false);
   const dispatch = useDispatch();
-  
+
   // logout functionality
 
   const logout = useCallback(async () => {
@@ -47,20 +47,25 @@ function Home() {
     fetchChats();
   }, [dispatch]);
 
-    // Fetch messages when selected chat changes
-    useEffect(() => {
-      if (selectedChatId) {
-        dispatch(getUserMessagesThunk({ chatId: selectedChatId }));
-      }
-    }, [selectedChatId, dispatch]);
-  
-    // Get current chat messages
-    const currentMessages = selectedChatId ? messages[selectedChatId] : [];
+  // Fetch messages when selected chat changes
+  useEffect(() => {
+    if (selectedChatId) {
+      dispatch(getUserMessagesThunk({ chatId: selectedChatId }));
+    }
+  }, [selectedChatId, dispatch]);
  
+  // Get current chat messages
+  const currentMessages = selectedChatId ? messages[selectedChatId] : [];
 
   const handleSendMessage = (e) => {
     e.preventDefault();
     if (message.trim()) {
+      dispatch(
+        sendMessageThunk({
+          recieverId: selectedUser?._id,
+          message : msg,
+        })
+      );
       setMessage("");
     }
   };
@@ -97,9 +102,7 @@ function Home() {
           chatListComponentLoading={chatListComponentLoading}
         />
         <ChatArea
-          messages={currentMessages} 
-          setMessage={setMessage}
-          handleSendMessage={handleSendMessage}
+          messages={currentMessages}  
         />
       </div>
     </div>

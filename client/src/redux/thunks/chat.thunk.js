@@ -15,3 +15,10 @@ export const getUserMessagesThunk = createThunk(
   "fetch Messages successfully!"
 );
  
+
+export const sendMessageThunk = createThunk(
+  "sendMessageThunk",
+  (payload) => axiosInstance.post(`chats/send`, payload),
+  "send Message successfully!"
+);
+ 

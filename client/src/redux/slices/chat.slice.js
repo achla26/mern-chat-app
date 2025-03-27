@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getUserChatsThunk, getUserMessagesThunk } from "../thunks/chat.thunk";
+import { getUserChatsThunk, getUserMessagesThunk , sendMessageThunk} from "../thunks/chat.thunk";
 import { safeSessionStorage } from "@/utility/helper";
 
 const getInitialselectedChatId = () => {
@@ -66,6 +66,16 @@ export const chatSlice = createSlice({
       state.chatAreaComponentLoading = false;
     });
     builder.addCase(getUserMessagesThunk.rejected, (state, action) => {
+      state.chatListComponentLoading = false;
+    });
+
+    // send user chat messages
+    builder.addCase(sendMessageThunk.pending, (state, action) => {});
+    builder.addCase(sendMessageThunk.fulfilled, (state, action) => { 
+      const { chatId, messages } = action.payload.data;
+      state.messages[chatId] = messages; // Store messages by  
+    });
+    builder.addCase(sendMessageThunk.rejected, (state, action) => {
       state.chatListComponentLoading = false;
     });
   },
