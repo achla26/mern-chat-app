@@ -1,45 +1,54 @@
 import { formatTimestamp } from "@/utility/helper";
 import { useSelector } from "react-redux";
+import ChatAreaPlaceholder from "./ChatAreaPlaceholder";
 
-function MessageList({ messages }) {
+function MessageList({ messages ,chatAreaComponentLoading}) {
   const messageArray = Array.isArray(messages)
     ? messages
     : messages?.data || messages?.messages || [];
 
   const currentUser = useSelector((state) => state.auth.user);
+  const currentUserId = currentUser?.id;
+
+  
+  if (chatAreaComponentLoading) {
+    return (
+      <div className="flex-1 overflow-y-auto">
+        <ChatAreaPlaceholder />
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4">
-      {Array.isArray(messageArray) ? (
+      {messageArray.length > 0 ? (
         messageArray.map((msg) => {
-          const isCurrentUser = msg.senderId?.id === currentUser.id;
+          const isCurrentUser = msg.senderId?.id === currentUserId || msg.sender === currentUserId;
+          const senderName = msg.senderId?.fullName || msg.senderName || "Unknown";
+          const receiverName = msg.receiverId?.fullName || msg.receiverName || "Unknown";
+          const messageTime = msg.createdAt ? formatTimestamp(msg.createdAt) : "Just now";
 
           return (
             <div
-              key={msg._id}
-              className={`flex ${
-                isCurrentUser ? "justify-end" : "justify-start"
-              }`}
+              key={msg._id || msg.id || Math.random().toString(36).substring(2, 9)}
+              className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
             >
               <div
                 className={`max-w-[85%] sm:max-w-[75%] md:max-w-[65%] rounded-lg p-3 ${
-                  isCurrentUser ? "bg-blue-600" : "bg-gray-700"
+                  isCurrentUser ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-100"
                 }`}
               >
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-medium">
                     {isCurrentUser ? "You" : senderName}
                   </span>
-                  <span className="text-xs text-gray-400">
-                    {new Date(msg.createdAt).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                  <span className="text-xs opacity-80">
+                    {messageTime}
                   </span>
                 </div>
-                <p className="break-words">{msg.message}</p>
-                {!isCurrentUser && (
-                  <p className="text-xs text-gray-300 mt-1">
+                <p className="break-words whitespace-pre-wrap">{msg.message || msg.content}</p>
+                {!isCurrentUser && receiverName && (
+                  <p className="text-xs opacity-70 mt-1">
                     To: {receiverName}
                   </p>
                 )}
@@ -49,7 +58,7 @@ function MessageList({ messages }) {
         })
       ) : (
         <div className="flex justify-center items-center h-full">
-          <p>No chats available</p>
+          <p className="text-gray-400">No messages yet</p>
         </div>
       )}
     </div>

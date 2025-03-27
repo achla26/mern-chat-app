@@ -66,7 +66,7 @@ export const chatSlice = createSlice({
       state.chatAreaComponentLoading = false;
     });
     builder.addCase(getUserMessagesThunk.rejected, (state, action) => {
-      state.chatListComponentLoading = false;
+      state.chatAreaComponentLoading = false;
     });
 
     // send user chat messages
@@ -76,7 +76,7 @@ export const chatSlice = createSlice({
       state.messages[chatId] = messages; // Store messages by  
     });
     builder.addCase(sendMessageThunk.rejected, (state, action) => {
-      state.chatListComponentLoading = false;
+
     });
   },
 });

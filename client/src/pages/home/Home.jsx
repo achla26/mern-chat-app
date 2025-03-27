@@ -20,7 +20,6 @@ function Home() {
     messages,
   } = useSelector((state) => state.chat);
   const { navigate } = useNavigation();
-
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const dispatch = useDispatch();
 
@@ -92,7 +91,7 @@ function Home() {
           logout={logout}
           chatListComponentLoading={chatListComponentLoading}
         />
-        <ChatArea messages={currentMessages} />
+        <ChatArea messages={currentMessages} chatAreaComponentLoading={chatAreaComponentLoading}/>
       </div>
     </div>
   );
