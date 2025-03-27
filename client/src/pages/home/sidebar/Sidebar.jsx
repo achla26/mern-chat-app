@@ -11,8 +11,7 @@ const Sidebar = memo(
     logout,
     chatListComponentLoading,
     selectedChatId,
-  }) => {
-    console.log("Sidebar");
+  }) => { 
     return (
       <aside
         className={`

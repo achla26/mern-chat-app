@@ -23,28 +23,7 @@ function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [msg, setMessage] = useState(false);
   const dispatch = useDispatch();
-
-  // const messages = [
-  //   {
-  //     id: 1,
-  //     content: "Hi there! How's the project going?",
-  //     sender: "John",
-  //     timestamp: "10:30 AM",
-  //   },
-  //   {
-  //     id: 2,
-  //     content: "It's going well! We're making good progress.",
-  //     sender: "You",
-  //     timestamp: "10:31 AM",
-  //   },
-  //   {
-  //     id: 3,
-  //     content: "That's great to hear! Any blockers?",
-  //     sender: "John",
-  //     timestamp: "10:32 AM",
-  //   },
-  // ];
-
+  
   // logout functionality
 
   const logout = useCallback(async () => {

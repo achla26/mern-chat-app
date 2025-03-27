@@ -3,7 +3,7 @@ import { formatTimestamp } from "@/utility/helper";
 import React, { memo } from "react";
 import { useDispatch } from "react-redux";
 import { setselectedChatId } from "../../../redux/slices/chat.slice";
-import { getUserMessagesThunk} from "@/redux/thunks/chat.thunk";
+import SidebarPlaceholder from "./SidebarPlaceholder";
 
 const ChatList = memo(({ chats, chatListComponentLoading , selectedChatId}) => {
   const dispatch = useDispatch();
@@ -18,9 +18,7 @@ const ChatList = memo(({ chats, chatListComponentLoading , selectedChatId}) => {
   return (
     <div className="flex-1 overflow-y-auto">
       {chatListComponentLoading ? (
-        <div className="flex justify-center items-center h-full">
-          <Spinner />
-        </div>
+         <SidebarPlaceholder/>
       ) : Array.isArray(chats) ? (
         chats.map((chat) => {
           const avatar =
