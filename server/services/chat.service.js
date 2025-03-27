@@ -22,10 +22,13 @@ export const getChatsService = async (userId) => {
     const uniqueUserIds = [...new Set(userIds.map(id => id.toString()))]
       .map(id => new mongoose.Types.ObjectId(id));
 
-    // Fetch user details
-    const users = await User.find({ _id: { $in: uniqueUserIds } })
-      .select("_id fullName avatar");
-
+    const users = await User.find({ 
+      _id: { 
+        $in: uniqueUserIds,
+        $ne: userId // Exclude the authenticated user's ID
+      }
+    }).select("_id fullName avatar");
+    
     // Create user map for quick lookup
     const usersMap = users.reduce((map, user) => {
       map[user._id.toString()] = user;
@@ -34,24 +37,28 @@ export const getChatsService = async (userId) => {
 
     // Format chats with essential data
     const chats = conversations.map((chat) => {
-      const isGroup = chat.isGroup;
-      const otherUserId = isGroup 
-        ? null 
-        : chat.members.find(member => member.toString() !== userId);
+      const isGroup = chat.members.length > 2 || chat.isGroup; // Determine if it's a group chat
       
       const lastMessageContent = chat.lastMessage?.message 
         ? chat.lastMessage.message.substring(0, 30) + (chat.lastMessage.message.length > 30 ? '...' : '')
         : 'No messages yet';
 
+      // For 1:1 chats, find the other user
+      let otherUser = null;
+      if (!isGroup) {
+        const otherUserId = chat.members.find(member => member.toString() !== userId.toString());
+        otherUser = usersMap[otherUserId?.toString()];
+      }
+
       return {
         _id: chat._id,
         isGroup,
         chatName: isGroup
-          ? chat.groupName || "Group Chat"
-          : usersMap[otherUserId?.toString()]?.fullName || "Unknown User",
+          ? chat.groupName || `Group (${chat.members.length})`
+          : otherUser?.fullName || "Unknown User",
         avatar: isGroup
           ? chat.groupAvatar
-          : usersMap[otherUserId?.toString()]?.avatar,
+          : otherUser?.avatar,
         lastMessage: lastMessageContent,
         unreadCount: chat.unreadCount || 0,
         members: chat.members,

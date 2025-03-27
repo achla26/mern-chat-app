@@ -1,24 +1,34 @@
 import Spinner from "@/Spinner";
 import { formatTimestamp } from "@/utility/helper";
-import React, { memo } from "react";
-import { useDispatch } from "react-redux";
-import { setselectedChatId } from "../../../redux/slices/chat.slice";
+import React, { memo, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getUserMessagesThunk } from "@/redux/thunks/chat.thunk";
 import SidebarPlaceholder from "./SidebarPlaceholder";
+import { setselectedChatId } from "../../../redux/slices/chat.slice";
 
-const ChatList = memo(({ chats, chatListComponentLoading , selectedChatId}) => {
+const ChatList = memo(({ chats, chatListComponentLoading }) => {
   const dispatch = useDispatch();
- 
+  const { selectedChatId } = useSelector((state) => state.chat);
+
+  // Fetch messages when selected chat changes
+  const fetchMessages = (chatId) => {
+    dispatch(getUserMessagesThunk({ chatId }));
+  };
 
   const handleUserClick = (chatId) => {
     dispatch(setselectedChatId(chatId)); 
   };
- 
+  useEffect(() => { 
+    if(selectedChatId){
+      fetchMessages(selectedChatId);
+    }
+  }, [selectedChatId, dispatch]);
 
   console.log("chatlist render");
   return (
     <div className="flex-1 overflow-y-auto">
       {chatListComponentLoading ? (
-         <SidebarPlaceholder/>
+        <SidebarPlaceholder />
       ) : Array.isArray(chats) ? (
         chats.map((chat) => {
           const avatar =

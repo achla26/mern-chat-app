@@ -45,7 +45,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
 
   const data = await sendMessageService(
     senderId,
-    conversationId,
+    receiverIds,
     message,
     isGroup
   );

@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { getUserChatsThunk, getUserMessagesThunk , sendMessageThunk} from "../thunks/chat.thunk";
-import { safeSessionStorage } from "@/utility/helper";
+import { safeSessionStorage } from "@/utility/helper"; 
 
 const getInitialselectedChatId = () => {
   try {
@@ -26,7 +26,7 @@ export const chatSlice = createSlice({
   name: "chat",
   initialState,
   reducers: {
-    setselectedChatId: (state, action) => {
+    setselectedChatId: (state, action) => { 
       if (action.payload) {
         try {
           const serializedUser = JSON.stringify(action.payload);

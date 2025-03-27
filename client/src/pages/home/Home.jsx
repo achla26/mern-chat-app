@@ -4,7 +4,7 @@ import Sidebar from "./sidebar/Sidebar";
 import ChatArea from "./chat/ChatArea";
 import { useSelector, useDispatch } from "react-redux";
 import {
-  getUserChatsThunk, 
+  getUserChatsThunk,
   getUserMessagesThunk,
 } from "@/redux/thunks/chat.thunk";
 import { logoutUserThunk } from "@/redux/thunks/auth.thunk";
@@ -47,14 +47,6 @@ function Home() {
     fetchChats();
   }, [dispatch]);
 
-  // Fetch messages when selected chat changes
-  useEffect(() => {
-    if (selectedChatId) {
-      dispatch(getUserMessagesThunk({ chatId: selectedChatId }));
-    }
-  }, [selectedChatId, dispatch]);
- 
-  // Get current chat messages
   const currentMessages = selectedChatId ? messages[selectedChatId] : [];
 
   const handleSendMessage = (e) => {
@@ -63,7 +55,7 @@ function Home() {
       dispatch(
         sendMessageThunk({
           recieverId: selectedUser?._id,
-          message : msg,
+          message: msg,
         })
       );
       setMessage("");
@@ -98,12 +90,9 @@ function Home() {
           onClose={toggleSidebar}
           chats={chats}
           logout={logout}
-          selectedChatId={selectedChatId}
           chatListComponentLoading={chatListComponentLoading}
         />
-        <ChatArea
-          messages={currentMessages}  
-        />
+        <ChatArea messages={currentMessages} />
       </div>
     </div>
   );

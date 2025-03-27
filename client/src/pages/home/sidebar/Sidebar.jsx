@@ -45,8 +45,7 @@ const Sidebar = memo(
 
         <ChatList
           chats={chats}
-          chatListComponentLoading={chatListComponentLoading}
-          selectedChatId={selectedChatId}
+          chatListComponentLoading={chatListComponentLoading} 
         />
 
         <button className="m-4 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 px-4 transition-colors">
