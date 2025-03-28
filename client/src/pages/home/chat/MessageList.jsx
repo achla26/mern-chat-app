@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import ChatAreaPlaceholder from "./ChatAreaPlaceholder";
 
 function MessageList({ messages ,chatAreaComponentLoading}) {
+  
   const messageArray = Array.isArray(messages)
     ? messages
     : messages?.data || messages?.messages || [];

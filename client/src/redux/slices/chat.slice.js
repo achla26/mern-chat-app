@@ -1,6 +1,10 @@
 // chat.slice.js
 import { createSlice } from "@reduxjs/toolkit";
-import { getUserChatsThunk, getUserMessagesThunk, sendMessageThunk } from "../thunks/chat.thunk";
+import {
+  getUserChatsThunk,
+  getUserMessagesThunk,
+  sendMessageThunk,
+} from "../thunks/chat.thunk";
 import { safeSessionStorage } from "@/utility/helper";
 
 const getInitialSelectedChatId = () => {
@@ -14,8 +18,8 @@ const getInitialSelectedChatId = () => {
 };
 
 const initialState = {
-  chats: {},       // { [chatId]: chatObject }
-  messages: {},    // { [chatId]: messageArray }
+  chats: {}, // { [chatId]: chatObject }
+  messages: {}, // { [chatId]: messageArray }
   otherParticipants: {}, // { [chatId]: { [userId]: userObject } }
   chatScreenLoading: true,
   chatAreaComponentLoading: true,
@@ -47,15 +51,15 @@ export const chatSlice = createSlice({
     },
     addNewMessage: (state, action) => {
       const { chatId, message } = action.payload;
-      
+
       // Initialize message array if doesn't exist
       if (!Array.isArray(state.messages[chatId])) {
         state.messages[chatId] = [];
       }
-      
+
       // Add new message at beginning (chronological order)
       state.messages[chatId].unshift(message);
-      
+
       // Update last message in chat object
       if (state.chats[chatId]) {
         state.chats[chatId].lastMessage = message;
@@ -71,7 +75,7 @@ export const chatSlice = createSlice({
       })
       .addCase(getUserChatsThunk.fulfilled, (state, action) => {
         state.chatListComponentLoading = false;
-        
+
         // Convert array to normalized object
         state.chats = action.payload.data.reduce((acc, chat) => {
           acc[chat._id] = chat;
@@ -86,14 +90,14 @@ export const chatSlice = createSlice({
       .addCase(getUserMessagesThunk.pending, (state) => {
         state.chatAreaComponentLoading = true;
       })
-      .addCase(getUserMessagesThunk.fulfilled, (state, action) => { 
-        console.log(action.payload.data)
-        const { conversationId, messages, participants } = action.payload.data;     
-        
+      .addCase(getUserMessagesThunk.fulfilled, (state, action) => {
+        console.log(action.payload.data);
+        const { conversationId, messages, participants } = action.payload.data;
+
         // Store messages
         state.messages[conversationId] = messages;
         state.otherParticipants = Object.keys(participants);
-        
+
         state.chatAreaComponentLoading = false;
       })
       .addCase(getUserMessagesThunk.rejected, (state) => {
@@ -106,18 +110,29 @@ export const chatSlice = createSlice({
       })
       .addCase(sendMessageThunk.fulfilled, (state, action) => {
         const { chatId, message } = action.payload.data;
-        
-        // Add message to state
+
+        // Initialize if doesn't exist
         if (!Array.isArray(state.messages[chatId])) {
           state.messages[chatId] = [];
         }
-        state.messages[chatId].unshift(message);
-        
-        // Update chat's last message
+
+        // Add new message at beginning (assuming newest first)
+        state.messages[chatId].unshift({
+          ...message,
+          // Ensure these fields exist
+          _id: message._id || Date.now().toString(), // temporary ID if missing
+          createdAt: message.createdAt || new Date().toISOString(),
+          senderId: message.senderId || state.selectedUser?._id,
+          receiverIds: Array.isArray(message.receiverIds)
+            ? message.receiverIds
+            : [message.receiverIds],
+        });
+
+        // Update last message in chat
         if (state.chats[chatId]) {
           state.chats[chatId].lastMessage = message;
         }
-        
+
         state.chatButtonLoading = false;
       })
       .addCase(sendMessageThunk.rejected, (state) => {
@@ -126,26 +141,28 @@ export const chatSlice = createSlice({
   },
 });
 
-export const { 
-  setSelectedChatId, 
-  clearSelectedChatId, 
+export const {
+  setSelectedChatId,
+  clearSelectedChatId,
   addNewMessage,
-  resetChatState
+  resetChatState,
 } = chatSlice.actions;
 
 // Selectors
 export const selectChatById = (chatId) => (state) => state.chat.chats[chatId];
-export const selectMessagesByChatId = (chatId) => (state) => state.chat.messages[chatId] || [];
-export const selectParticipantsByChatId = (chatId) => (state) => state.chat.participants[chatId] || {};
+export const selectMessagesByChatId = (chatId) => (state) =>
+  state.chat.messages[chatId] || [];
+export const selectParticipantsByChatId = (chatId) => (state) =>
+  state.chat.participants[chatId] || {};
 
 export const selectMessagesWithUsers = (chatId) => (state) => {
   const messages = selectMessagesByChatId(chatId)(state);
   const participants = selectParticipantsByChatId(chatId)(state);
-  
-  return messages.map(msg => ({
+
+  return messages.map((msg) => ({
     ...msg,
     sender: participants[msg.senderId],
-    receivers: msg.receiverIds.map(id => participants[id])
+    receivers: msg.receiverIds.map((id) => participants[id]),
   }));
 };
 

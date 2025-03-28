@@ -1,31 +1,27 @@
-import React from 'react';
-import { Send } from 'lucide-react';
+import React from "react";
+import { Send } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  sendMessageThunk
-} from "@/redux/thunks/chat.thunk";
+import { sendMessageThunk } from "@/redux/thunks/chat.thunk";
 
 import { useState } from "react";
 
-
 function MessageInput() {
-const { 
-    selectedChatId, 
-  } = useSelector((state) => state.chat);
+  const { selectedChatId, otherParticipants } = useSelector(
+    (state) => state.chat
+  );
   const dispatch = useDispatch();
-  const { selectedUser , otherParticipants } = useSelector((state) => state.chat);
   const [message, setMessage] = useState("");
-  const { user } = useSelector(state => state.user); 
   const handleSendMessage = (e) => {
     e.preventDefault();
 
     dispatch(
       sendMessageThunk({
-        receiverIds: otherParticipants, 
-        message,
+        conversationId: selectedChatId,
+        receiverIds: otherParticipants,
+        message: message.trim(),
       })
     );
-    setMessage('');
+    setMessage("");
   };
 
   return (
@@ -41,7 +37,7 @@ const {
         <button
           type="button"
           className="p-2 bg-blue-600 hover:bg-blue-700 rounded-full flex-shrink-0 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={!message} 
+          disabled={!message}
           onClick={handleSendMessage}
         >
           <Send size={20} />

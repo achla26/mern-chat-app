@@ -221,7 +221,7 @@ export const getMessagesByConversationIdService = async (
 
     // Get paginated messages (without populating)
     const messages = await Message.find({ conversationId })
-      .sort({ createdAt: -1 })
+      // .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
       .select("_id message createdAt readBy senderId receiverIds")
