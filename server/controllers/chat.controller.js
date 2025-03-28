@@ -90,10 +90,12 @@ export const markMessagesAsRead = asyncHandler(async (req, res) => {
  */
 export const getMessagesByConversationId = asyncHandler(async (req, res) => {
   const { chatId } = req.params; // Get the conversation ID from the request params
+  const senderId = req.user._id; // Get the authenticated user's ID
   const { page = 1, limit = 20 } = req.query; // Get pagination parameters
 
   const data = await getMessagesByConversationIdService(
     chatId,
+    senderId,
     parseInt(page),
     parseInt(limit)
   );

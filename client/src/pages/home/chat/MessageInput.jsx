@@ -13,17 +13,15 @@ const {
     selectedChatId, 
   } = useSelector((state) => state.chat);
   const dispatch = useDispatch();
-  const { selectedUser } = useSelector((state) => state.chat);
+  const { selectedUser , otherParticipants } = useSelector((state) => state.chat);
   const [message, setMessage] = useState("");
-  const { user } = useSelector(state => state.user);
-console.log(user)
+  const { user } = useSelector(state => state.user); 
   const handleSendMessage = (e) => {
     e.preventDefault();
 
     dispatch(
       sendMessageThunk({
-        receiverIds: [selectedUser?._id],
-        senderId:user,
+        receiverIds: otherParticipants, 
         message,
       })
     );

@@ -22,7 +22,7 @@ function Home() {
   const { navigate } = useNavigation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const dispatch = useDispatch();
-
+ 
   // logout functionality
 
   const logout = useCallback(async () => {

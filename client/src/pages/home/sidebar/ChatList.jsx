@@ -4,24 +4,30 @@ import React, { memo, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getUserMessagesThunk } from "@/redux/thunks/chat.thunk";
 import SidebarPlaceholder from "./SidebarPlaceholder";
-import { setselectedChatId } from "../../../redux/slices/chat.slice";
+import { setSelectedChatId } from "@/redux/slices/chat.slice";
 
 const ChatList = memo(({ chats, chatListComponentLoading }) => {
   const dispatch = useDispatch();
   const { selectedChatId } = useSelector((state) => state.chat);
 
-  // Memoized fetch function
+  // Convert chats object to array if needed
+  const chatsArray = chats && typeof chats === 'object' && !Array.isArray(chats)
+    ? Object.values(chats)
+    : Array.isArray(chats) 
+      ? chats 
+      : [];
+
   const fetchMessages = useCallback((chatId) => {
     dispatch(getUserMessagesThunk({ chatId }));
   }, [dispatch]);
 
   const handleUserClick = useCallback((chatId) => {
-    dispatch(setselectedChatId(chatId));
+    dispatch(setSelectedChatId(chatId));
     fetchMessages(chatId);
   }, [dispatch, fetchMessages]);
 
   useEffect(() => { 
-    if(selectedChatId){
+    if (selectedChatId) {
       fetchMessages(selectedChatId);
     }
   }, [selectedChatId, fetchMessages]);
@@ -39,7 +45,7 @@ const ChatList = memo(({ chats, chatListComponentLoading }) => {
     );
   }
 
-  if (!Array.isArray(chats) || chats.length === 0) {
+  if (chatsArray.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-4 text-gray-400">
         <svg className="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -53,7 +59,7 @@ const ChatList = memo(({ chats, chatListComponentLoading }) => {
 
   return (
     <div className="flex-1 overflow-y-auto" role="list">
-      {chats.map((chat) => {
+      {chatsArray.map((chat) => {
         const avatarUrl = generateAvatarUrl(chat);
         const isSelected = selectedChatId === chat._id;
 
@@ -96,12 +102,12 @@ const ChatList = memo(({ chats, chatListComponentLoading }) => {
                 {chat.lastMessage || "No messages yet"}
               </p>
             </div>
-            {chat.unread > 0 && (
+            {chat.unreadCount > 0 && (
               <span 
                 className="ml-2 bg-blue-500 text-white rounded-full px-2 py-1 text-xs flex-shrink-0"
-                aria-label={`${chat.unread} unread messages`}
+                aria-label={`${chat.unreadCount} unread messages`}
               >
-                {chat.unread}
+                {chat.unreadCount}
               </span>
             )}
           </div>
@@ -109,8 +115,6 @@ const ChatList = memo(({ chats, chatListComponentLoading }) => {
       })}
     </div>
   );
-}); 
-
- 
+});
 
 export default ChatList;

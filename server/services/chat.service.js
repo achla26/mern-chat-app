@@ -17,18 +17,19 @@ export const getChatsService = async (userId) => {
     }).populate("lastMessage");
 
     // Get unique user IDs from all chats
-    const userIds = conversations.flatMap((chat) => chat.members); 
+    const userIds = conversations.flatMap((chat) => chat.members);
 
-    const uniqueUserIds = [...new Set(userIds.map(id => id.toString()))]
-      .map(id => new mongoose.Types.ObjectId(id));
+    const uniqueUserIds = [...new Set(userIds.map((id) => id.toString()))].map(
+      (id) => new mongoose.Types.ObjectId(id)
+    );
 
-    const users = await User.find({ 
-      _id: { 
+    const users = await User.find({
+      _id: {
         $in: uniqueUserIds,
-        $ne: userId // Exclude the authenticated user's ID
-      }
+        $ne: userId, // Exclude the authenticated user's ID
+      },
     }).select("_id fullName avatar");
-    
+
     // Create user map for quick lookup
     const usersMap = users.reduce((map, user) => {
       map[user._id.toString()] = user;
@@ -38,15 +39,18 @@ export const getChatsService = async (userId) => {
     // Format chats with essential data
     const chats = conversations.map((chat) => {
       const isGroup = chat.members.length > 2 || chat.isGroup; // Determine if it's a group chat
-      
-      const lastMessageContent = chat.lastMessage?.message 
-        ? chat.lastMessage.message.substring(0, 30) + (chat.lastMessage.message.length > 30 ? '...' : '')
-        : 'No messages yet';
+
+      const lastMessageContent = chat.lastMessage?.message
+        ? chat.lastMessage.message.substring(0, 30) +
+          (chat.lastMessage.message.length > 30 ? "..." : "")
+        : "No messages yet";
 
       // For 1:1 chats, find the other user
       let otherUser = null;
       if (!isGroup) {
-        const otherUserId = chat.members.find(member => member.toString() !== userId.toString());
+        const otherUserId = chat.members.find(
+          (member) => member.toString() !== userId.toString()
+        );
         otherUser = usersMap[otherUserId?.toString()];
       }
 
@@ -56,13 +60,11 @@ export const getChatsService = async (userId) => {
         chatName: isGroup
           ? chat.groupName || `Group (${chat.members.length})`
           : otherUser?.fullName || "Unknown User",
-        avatar: isGroup
-          ? chat.groupAvatar
-          : otherUser?.avatar,
+        avatar: isGroup ? chat.groupAvatar : otherUser?.avatar,
         lastMessage: lastMessageContent,
         unreadCount: chat.unreadCount || 0,
         members: chat.members,
-        createdAt: chat.createdAt
+        createdAt: chat.createdAt,
       };
     });
 
@@ -75,7 +77,11 @@ export const getChatsService = async (userId) => {
   }
 };
 
-export const FindConversation = async (senderId,receiverIds, isGroup = false) => {
+export const FindConversation = async (
+  senderId,
+  receiverIds,
+  isGroup = false
+) => {
   let members = [senderId, receiverIds[0]];
   if (isGroup) {
     members = [senderId, ...receiverIds];
@@ -95,9 +101,17 @@ export const FindConversation = async (senderId,receiverIds, isGroup = false) =>
  * @param {string} receiverId - The ID of the receiver.
  * @returns {Promise<Object>} - The created conversation.
  */
-export const createConversationService = async (senderId, receiverIds , isGroup = false) => {
-  try { 
-    let existingConversation = await FindConversation(senderId , receiverIds , isGroup);
+export const createConversationService = async (
+  senderId,
+  receiverIds,
+  isGroup = false
+) => {
+  try {
+    let existingConversation = await FindConversation(
+      senderId,
+      receiverIds,
+      isGroup
+    );
 
     if (existingConversation) {
       return existingConversation;
@@ -145,12 +159,16 @@ export const sendMessageService = async (
       );
     }
 
-    let conversation = await FindConversation(senderId , receiverIds , isGroup); 
-    
+    let conversation = await FindConversation(senderId, receiverIds, isGroup);
+
     // If no conversation exists, create one
     if (!conversation) {
-      conversation = await createConversationService(senderId , receiverIds , isGroup);
-    } 
+      conversation = await createConversationService(
+        senderId,
+        receiverIds,
+        isGroup
+      );
+    }
 
     // Create the message
     const newMessage = await Message.create({
@@ -183,58 +201,79 @@ export const sendMessageService = async (
  */
 export const getMessagesByConversationIdService = async (
   conversationId,
+  senderId,
   page = 1,
   limit = 20
 ) => {
   try {
-    // Validate conversationId
     if (!conversationId?.trim()) {
       throw new ApiError(400, "Conversation ID is required.");
     }
 
-    // Calculate the number of documents to skip (for pagination)
-    const skip = (page - 1) * limit;
+    // Get conversation first to identify all participants
+    const conversation = await Conversation.findById(conversationId)
+      .select("members isGroup")
+      .lean();
 
-    // Find all messages for the conversation, sorted by createdAt (newest first)
+    if (!conversation) {
+      throw new ApiError(404, "Conversation not found");
+    }
+
+    // Get paginated messages (without populating)
     const messages = await Message.find({ conversationId })
-      .sort({ createdAt: -1 }) // Sort by createdAt in descending order (newest first)
-      .skip(skip) // Skip documents for pagination
-      .limit(limit) // Limit the number of documents per page
-      .populate({
-        path: "senderId",
-        select: "email name", // Include only email and name fields
-      })
-      .populate({
-        path: "receiverIds",
-        select: "email name", // Include only email and name fields
-      })
-      .populate({
-        path: "readBy",
-        select: "email name", // Include only email and name fields
-      })
-      .select("message senderId readBy receiverIds createdAt"); // Include only required fields
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .select("_id message createdAt readBy senderId receiverIds")
+      .lean();
 
-    // Get the total count of messages for the conversation (for pagination)
-    const totalMessages = await Message.countDocuments({ conversationId });
+    // Get all unique user IDs in the conversation
+    const userIds = [
+      ...new Set(conversation.members.map((id) => id.toString())),
+    ];
 
-    // Calculate total pages
-    const totalPages = Math.ceil(totalMessages / limit);
+    // Fetch all participants' details in one query
 
+    const members = await User.find({
+      _id: {
+        $in: userIds,
+        $ne: senderId, // Exclude the authenticated user's ID
+      },
+    }).select("_id fullName email").lean();
+
+    // Create participant map for quick lookup
+     const participants = members.reduce((map, user) => {
+      map[user._id.toString()] = user;
+      return map;
+    }, {});
+
+    // Structure the final response
     return {
-      messages,
-      chatId : conversationId,
+      conversationId,
+      isGroup: conversation.isGroup,
+      participants, // All users in the conversation
+      messages: messages.map((msg) => ({
+        _id: msg._id,
+        message: msg.message,
+        createdAt: msg.createdAt,
+        readBy: msg.readBy || [],
+        // Only include references to participants
+        senderId: msg.senderId,
+        receiverIds: msg.receiverIds,
+      })),
       pagination: {
         currentPage: page,
-        totalPages,
-        totalMessages,
+        totalPages: Math.ceil(
+          (await Message.countDocuments({ conversationId })) / limit
+        ),
+        totalMessages: await Message.countDocuments({ conversationId }),
         messagesPerPage: limit,
       },
     };
   } catch (error) {
-    throw new ApiError(500, error.message || "Error while fetching messages.");
+    throw new ApiError(500, error.message || "Failed to fetch messages");
   }
 };
-
 /**
  * Add a member to a group chat.
  * @param {string} chatId - The ID of the group chat.

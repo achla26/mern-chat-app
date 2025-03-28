@@ -1,8 +1,9 @@
+// chat.slice.js
 import { createSlice } from "@reduxjs/toolkit";
-import { getUserChatsThunk, getUserMessagesThunk , sendMessageThunk} from "../thunks/chat.thunk";
-import { safeSessionStorage } from "@/utility/helper"; 
+import { getUserChatsThunk, getUserMessagesThunk, sendMessageThunk } from "../thunks/chat.thunk";
+import { safeSessionStorage } from "@/utility/helper";
 
-const getInitialselectedChatId = () => {
+const getInitialSelectedChatId = () => {
   try {
     const selectedChatId = safeSessionStorage.getItem("selectedChatId");
     return selectedChatId ? JSON.parse(selectedChatId) : null;
@@ -13,73 +14,139 @@ const getInitialselectedChatId = () => {
 };
 
 const initialState = {
-  chats: {},
-  messages: {},
+  chats: {},       // { [chatId]: chatObject }
+  messages: {},    // { [chatId]: messageArray }
+  otherParticipants: {}, // { [chatId]: { [userId]: userObject } }
   chatScreenLoading: true,
   chatAreaComponentLoading: true,
   chatButtonLoading: false,
   chatListComponentLoading: true,
-  selectedChatId: getInitialselectedChatId(),
+  selectedChatId: getInitialSelectedChatId(),
 };
 
 export const chatSlice = createSlice({
   name: "chat",
   initialState,
   reducers: {
-    setselectedChatId: (state, action) => { 
-      if (action.payload) {
-        try {
-          const serializedUser = JSON.stringify(action.payload);
-          safeSessionStorage.setItem("selectedChatId", serializedUser);
-          state.selectedChatId = action.payload;
-        } catch (error) {
-          console.error("Failed to set selectedChatId:", error);
-          state.selectedChatId = null;
+    setSelectedChatId: (state, action) => {
+      const chatId = action.payload;
+      state.selectedChatId = chatId;
+      try {
+        if (chatId) {
+          safeSessionStorage.setItem("selectedChatId", JSON.stringify(chatId));
+        } else {
+          safeSessionStorage.removeItem("selectedChatId");
         }
-      } else {
-        // Handle null/undefined payload
-        safeSessionStorage.setItem("selectedChatId", "");
-        state.selectedChatId = null;
+      } catch (error) {
+        console.error("Failed to persist selectedChatId:", error);
       }
     },
-    clearselectedChatId: (state) => {
-      safeSessionStorage.setItem("selectedChatId", "");
+    clearSelectedChatId: (state) => {
       state.selectedChatId = null;
+      safeSessionStorage.removeItem("selectedChatId");
     },
+    addNewMessage: (state, action) => {
+      const { chatId, message } = action.payload;
+      
+      // Initialize message array if doesn't exist
+      if (!Array.isArray(state.messages[chatId])) {
+        state.messages[chatId] = [];
+      }
+      
+      // Add new message at beginning (chronological order)
+      state.messages[chatId].unshift(message);
+      
+      // Update last message in chat object
+      if (state.chats[chatId]) {
+        state.chats[chatId].lastMessage = message;
+      }
+    },
+    resetChatState: () => initialState,
   },
   extraReducers: (builder) => {
-    // get user chats
-    builder.addCase(getUserChatsThunk.pending, (state, action) => {});
-    builder.addCase(getUserChatsThunk.fulfilled, (state, action) => {
-      state.chatListComponentLoading = false;
-      state.chats = action.payload.data;
-    });
-    builder.addCase(getUserChatsThunk.rejected, (state, action) => {
-      state.chatListComponentLoading = false;
-    });
+    builder
+      // Get User Chats
+      .addCase(getUserChatsThunk.pending, (state) => {
+        state.chatListComponentLoading = true;
+      })
+      .addCase(getUserChatsThunk.fulfilled, (state, action) => {
+        state.chatListComponentLoading = false;
+        
+        // Convert array to normalized object
+        state.chats = action.payload.data.reduce((acc, chat) => {
+          acc[chat._id] = chat;
+          return acc;
+        }, {});
+      })
+      .addCase(getUserChatsThunk.rejected, (state) => {
+        state.chatListComponentLoading = false;
+      })
 
-    // get user chat messages
-    builder.addCase(getUserMessagesThunk.pending, (state, action) => {});
-    builder.addCase(getUserMessagesThunk.fulfilled, (state, action) => { 
-      const { chatId, messages } = action.payload.data;
-      state.messages[chatId] = messages; // Store messages by chatId
-      state.chatAreaComponentLoading = false;
-    });
-    builder.addCase(getUserMessagesThunk.rejected, (state, action) => {
-      state.chatAreaComponentLoading = false;
-    });
+      // Get Messages
+      .addCase(getUserMessagesThunk.pending, (state) => {
+        state.chatAreaComponentLoading = true;
+      })
+      .addCase(getUserMessagesThunk.fulfilled, (state, action) => { 
+        console.log(action.payload.data)
+        const { conversationId, messages, participants } = action.payload.data;     
+        
+        // Store messages
+        state.messages[conversationId] = messages;
+        state.otherParticipants = Object.keys(participants);
+        
+        state.chatAreaComponentLoading = false;
+      })
+      .addCase(getUserMessagesThunk.rejected, (state) => {
+        state.chatAreaComponentLoading = false;
+      })
 
-    // send user chat messages
-    builder.addCase(sendMessageThunk.pending, (state, action) => {});
-    builder.addCase(sendMessageThunk.fulfilled, (state, action) => { 
-      const { chatId, messages } = action.payload.data;
-      state.messages[chatId] = messages; // Store messages by  
-    });
-    builder.addCase(sendMessageThunk.rejected, (state, action) => {
-
-    });
+      // Send Message
+      .addCase(sendMessageThunk.pending, (state) => {
+        state.chatButtonLoading = true;
+      })
+      .addCase(sendMessageThunk.fulfilled, (state, action) => {
+        const { chatId, message } = action.payload.data;
+        
+        // Add message to state
+        if (!Array.isArray(state.messages[chatId])) {
+          state.messages[chatId] = [];
+        }
+        state.messages[chatId].unshift(message);
+        
+        // Update chat's last message
+        if (state.chats[chatId]) {
+          state.chats[chatId].lastMessage = message;
+        }
+        
+        state.chatButtonLoading = false;
+      })
+      .addCase(sendMessageThunk.rejected, (state) => {
+        state.chatButtonLoading = false;
+      });
   },
 });
 
-export const { setselectedChatId, clearselectedChatId } = chatSlice.actions;
+export const { 
+  setSelectedChatId, 
+  clearSelectedChatId, 
+  addNewMessage,
+  resetChatState
+} = chatSlice.actions;
+
+// Selectors
+export const selectChatById = (chatId) => (state) => state.chat.chats[chatId];
+export const selectMessagesByChatId = (chatId) => (state) => state.chat.messages[chatId] || [];
+export const selectParticipantsByChatId = (chatId) => (state) => state.chat.participants[chatId] || {};
+
+export const selectMessagesWithUsers = (chatId) => (state) => {
+  const messages = selectMessagesByChatId(chatId)(state);
+  const participants = selectParticipantsByChatId(chatId)(state);
+  
+  return messages.map(msg => ({
+    ...msg,
+    sender: participants[msg.senderId],
+    receivers: msg.receiverIds.map(id => participants[id])
+  }));
+};
+
 export default chatSlice.reducer;
