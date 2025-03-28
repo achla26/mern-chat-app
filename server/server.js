@@ -1,7 +1,7 @@
 import 'dotenv/config';
  
 import  connectDB  from "./db/index.js"
-import { app, server } from './app.js'; // Import server instead of app
+import { server } from './app.js'; // Import server instead of app
 
 connectDB()
 .then(() => {

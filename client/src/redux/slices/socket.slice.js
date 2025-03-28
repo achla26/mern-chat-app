@@ -1,33 +1,35 @@
-import { safeLocalStorage } from "@/utility/helper";
-import { createSlice } from "@reduxjs/toolkit"; 
+import { createSlice } from "@reduxjs/toolkit";
 import { io } from "socket.io-client";
-
-const initialState = { 
-    socket:null,
+import Cookies from "js-cookie";
+const initialState = {
+  socket: null,
+  onlineUsers: [],
 };
 
 export const socketSlice = createSlice({
   name: "socket",
   initialState,
-  reducers: { 
+  reducers: {
     initializeSocket: (state, action) => {
-        const socket = io(import.meta.env.VITE_DB_ORIGIN,{
-            query:{
-                token:safeLocalStorage.getItem("accessToken"),
+      const socket = io(import.meta.env.VITE_DB_ORIGIN, {
+        auth: {
+          token: Cookies.get("accessToken"),
+        },
+      });
 
-            }
-        });
+      socket.on("connect", () => {
+        console.log("connected to socket server");
+      });
 
-        socket.on("connect",()=>{
-            console.log("connected to socket server");
-        });
-        state.socket=socket;       
-    }
+      state.socket = socket;
+    },
+    setOnlineUsers: (state, action) => {
+      state.onlineUsers = action.payload;
+    },
   },
-   
 });
 
 // Action creators are generated for each case reducer function
-export const { initializeSocket } = socketSlice.actions;
+export const { initializeSocket, setOnlineUsers } = socketSlice.actions;
 
 export default socketSlice.reducer;

@@ -42,3 +42,10 @@ export const safeLocalStorage = {
     }
   },
 };
+const currentUserDetails = () => {
+  const userDetails = safeLocalStorage.getItem("user");
+  return userDetails ? JSON.parse(userDetails) : null;
+}
+
+// Usage:
+export const userData = currentUserDetails(); 

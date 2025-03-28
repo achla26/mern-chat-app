@@ -24,8 +24,14 @@ function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const dispatch = useDispatch();
 
-  useEffect(() => {
+   // Initialize socket on mount
+   useEffect(() => {
     dispatch(initializeSocket());
+    
+    return () => {
+      // Cleanup on unmount
+      // dispatch(disconnectSocket());
+    };
   }, [dispatch]);
  
   // logout functionality
