@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, use } from "react";
 import { Menu, X } from "lucide-react";
 import Sidebar from "./sidebar/Sidebar";
 import ChatArea from "./chat/ChatArea";
@@ -7,6 +7,7 @@ import {
   getUserChatsThunk,
   getUserMessagesThunk,
 } from "@/redux/thunks/chat.thunk";
+import { initializeSocket} from "@/redux/slices/socket.slice";
 import { logoutUserThunk } from "@/redux/thunks/auth.thunk";
 import { toast } from "react-hot-toast";
 import { useNavigation } from "../../hooks/navigation";
@@ -22,6 +23,10 @@ function Home() {
   const { navigate } = useNavigation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(initializeSocket());
+  }, [dispatch]);
  
   // logout functionality
 

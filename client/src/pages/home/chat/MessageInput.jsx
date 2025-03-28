@@ -2,7 +2,7 @@ import React from "react";
 import { Send } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { sendMessageThunk } from "@/redux/thunks/chat.thunk";
-
+import { addNewMessage  } from "@/redux/slices/chat.slice";
 import { useState } from "react";
 
 function MessageInput() {
@@ -15,6 +15,8 @@ function MessageInput() {
     e.preventDefault();
 
     dispatch(
+      setNewMessage(message),
+      // addNewMessage({chatId : selectedChatId,message: message.trim()}),
       sendMessageThunk({
         conversationId: selectedChatId,
         receiverIds: otherParticipants,

@@ -5,7 +5,11 @@ const store = configureStore({
   reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false,
+      serializableCheck: {
+        // ignoredActions: ["socket/initializeSocket"],
+        // ignoredActionPaths: ["socket.socket"],
+        ignoredPaths: ["socket.socket"],
+      },
     }),
 });
 

@@ -2,8 +2,18 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import errorHandler from "./middlewares/error.middleware.js"; // Import the error handler
+import { Server } from "socket.io";
+import http from "http";
+import initializeSocket from "./socket.js"; // Import socket logic
 
 const app = express();
+const server = http.createServer(app); // Create HTTP server
+const io = new Server(server, {
+    cors: {
+        origin: process.env.CLIENT_ORIGIN,
+        credentials: true,
+    },
+});
 
 const corsOptions = {
     origin: process.env.CLIENT_ORIGIN,
@@ -30,7 +40,10 @@ app.use("/api/v1/user", userRouter);
 app.use("/api/v1/chats", chatRouter);
 app.use("/api/v1/groups", groupRouter);
 app.use("/api/v1/message", messageRoute);
+
+initializeSocket(io); // Initialize socket logic
+
 // Error handler middleware (must be after all routes)
 app.use(errorHandler);
 
-export default app;
+export { app, server }; // Export both app and server
