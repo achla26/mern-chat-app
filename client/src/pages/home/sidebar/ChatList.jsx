@@ -5,28 +5,39 @@ import { useDispatch, useSelector } from "react-redux";
 import { getUserMessagesThunk } from "@/redux/thunks/chat.thunk";
 import SidebarPlaceholder from "./SidebarPlaceholder";
 import { setSelectedChatId } from "@/redux/slices/chat.slice";
+import { getOtherParticipant } from "@/utility/helper";
 
 const ChatList = memo(({ chats, chatListComponentLoading }) => {
   const dispatch = useDispatch();
   const { selectedChatId } = useSelector((state) => state.chat);
+  const { onlineUsers } = useSelector((state) => state.socket);
+
+  const onlineUsersSet = new Set(onlineUsers);
 
   // Convert chats object to array if needed
-  const chatsArray = chats && typeof chats === 'object' && !Array.isArray(chats)
-    ? Object.values(chats)
-    : Array.isArray(chats) 
-      ? chats 
+  const chatsArray =
+    chats && typeof chats === "object" && !Array.isArray(chats)
+      ? Object.values(chats)
+      : Array.isArray(chats)
+      ? chats
       : [];
 
-  const fetchMessages = useCallback((chatId) => {
-    dispatch(getUserMessagesThunk({ chatId }));
-  }, [dispatch]);
+  const fetchMessages = useCallback(
+    (chatId) => {
+      dispatch(getUserMessagesThunk({ chatId }));
+    },
+    [dispatch]
+  );
 
-  const handleUserClick = useCallback((chatId) => {
-    dispatch(setSelectedChatId(chatId));
-    fetchMessages(chatId);
-  }, [dispatch, fetchMessages]);
+  const handleUserClick = useCallback(
+    (chatId) => {
+      dispatch(setSelectedChatId(chatId));
+      fetchMessages(chatId);
+    },
+    [dispatch, fetchMessages]
+  );
 
-  useEffect(() => { 
+  useEffect(() => {
     if (selectedChatId) {
       fetchMessages(selectedChatId);
     }
@@ -34,7 +45,10 @@ const ChatList = memo(({ chats, chatListComponentLoading }) => {
 
   const generateAvatarUrl = (chat) => {
     const name = encodeURIComponent(chat.chatName || "Chat");
-    return chat.avatar || `https://ui-avatars.com/api/?name=${name}&background=random`;
+    return (
+      chat.avatar ||
+      `https://ui-avatars.com/api/?name=${name}&background=random`
+    );
   };
 
   if (chatListComponentLoading) {
@@ -48,8 +62,18 @@ const ChatList = memo(({ chats, chatListComponentLoading }) => {
   if (chatsArray.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-4 text-gray-400">
-        <svg className="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        <svg
+          className="w-16 h-16 mb-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1}
+            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+          />
         </svg>
         <p className="text-lg">No conversations yet</p>
         <p className="text-sm">Start a new chat to see it here</p>
@@ -60,6 +84,11 @@ const ChatList = memo(({ chats, chatListComponentLoading }) => {
   return (
     <div className="flex-1 overflow-y-auto" role="list">
       {chatsArray.map((chat) => {
+        const otherParticipant = getOtherParticipant(chat);
+        const isOnline = otherParticipant
+          ? onlineUsersSet.has(otherParticipant)
+          : false;
+
         const avatarUrl = generateAvatarUrl(chat);
         const isSelected = selectedChatId === chat._id;
 
@@ -85,7 +114,7 @@ const ChatList = memo(({ chats, chatListComponentLoading }) => {
                 }}
                 loading="lazy"
               />
-              {chat.isOnline && (
+              {isOnline && (
                 <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-800" />
               )}
             </div>
@@ -98,12 +127,15 @@ const ChatList = memo(({ chats, chatListComponentLoading }) => {
                   {formatTimestamp(chat.updatedAt || chat.createdAt)}
                 </span>
               </div>
-              <p className="text-sm text-gray-400 truncate" title={chat.lastMessage}>
+              <p
+                className="text-sm text-gray-400 truncate"
+                title={chat.lastMessage}
+              >
                 {chat.lastMessage || "No messages yet"}
               </p>
             </div>
             {chat.unreadCount > 0 && (
-              <span 
+              <span
                 className="ml-2 bg-blue-500 text-white rounded-full px-2 py-1 text-xs flex-shrink-0"
                 aria-label={`${chat.unreadCount} unread messages`}
               >

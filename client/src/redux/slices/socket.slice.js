@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   onlineUsers: [],
+  isConnected: false,
 };
 
 export const socketSlice = createSlice({
@@ -17,10 +18,21 @@ export const socketSlice = createSlice({
       }
     },
     removeOnlineUser: (state, action) => {
-      state.onlineUsers = state.onlineUsers.filter(userId => userId !== action.payload);
+      state.onlineUsers = state.onlineUsers.filter(
+        (userId) => userId !== action.payload
+      );
+    },
+    setConnectionStatus: (state, action) => {
+      state.isConnected = action.payload;
     },
   },
 });
 
-export const { setOnlineUsers, addOnlineUser, removeOnlineUser } = socketSlice.actions;
+export const { 
+  setOnlineUsers, 
+  addOnlineUser, 
+  removeOnlineUser,
+  setConnectionStatus 
+} = socketSlice.actions;
+
 export default socketSlice.reducer;
