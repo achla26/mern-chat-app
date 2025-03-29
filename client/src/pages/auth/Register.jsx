@@ -9,8 +9,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useState, useCallback } from "react";
+import { useDispatch } from "react-redux";
 import { registerUserThunk } from "@/redux/thunks/auth.thunk";
 import { useNavigate } from "react-router-dom";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -18,7 +18,6 @@ import toast from "react-hot-toast";
 
 const Register = ({ className, ...props }) => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
   const [registerData, setRegisterData] = useState({
@@ -26,31 +25,29 @@ const Register = ({ className, ...props }) => {
     email: "",
     password: "",
     username: "",
-    confirmPassword:"",
-    gender: "male", 
+    confirmPassword: "",
+    gender: "male",
   });
 
-  const handleFormData = (e) => {
-    setRegisterData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
+  const handleFormData = useCallback((e) => {
+    const { name, value } = e.target;
+    setRegisterData((prev) => ({ ...prev, [name]: value }));
+  }, []);
 
-  const handleRegister = async () => {
+  const handleRegister = useCallback(async () => {
     try {
-      if(registerData.password !== registerData.confirmPassword){
-        return toast.error("password and confirm password does not match.");
+      if (registerData.password !== registerData.confirmPassword) {
+        return toast.error("Password and confirm password do not match.");
       }
 
       const response = await dispatch(registerUserThunk(registerData));
       if (response?.payload?.success) {
         navigate("/otp-verify");
-      }  
-    } catch(err){
-      return toast.error(`An error occurred.${err}`);
+      }
+    } catch (err) {
+      toast.error(`An error occurred. ${err}`);
     }
-  };
+  }, [dispatch, registerData, navigate]);
 
   return (
     <div
@@ -64,33 +61,20 @@ const Register = ({ className, ...props }) => {
         <CardHeader>
           <CardTitle className="text-2xl">Register</CardTitle>
           <CardDescription>
-            Enter your Details below to Register to your account
+            Enter your details below to register your account
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={(e) => e.preventDefault()}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
-                <div className="grid gap-2">
-                  <Label htmlFor="fullName">Name</Label>
-                  <Input
-                    id="fullName"
-                    type="text"
-                    name="fullName"
-                    placeholder="John"
-                    required
-                    value={registerData.fullName}
-                    onChange={handleFormData}
-                  />
-                </div>
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="fullName">Full Name</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  name="email"
-                  placeholder="john@gmail.com"
+                  id="fullName"
+                  name="fullName"
+                  type="text"
                   required
-                  value={registerData.email}
+                  value={registerData.fullName}
                   onChange={handleFormData}
                 />
               </div>
@@ -98,11 +82,21 @@ const Register = ({ className, ...props }) => {
                 <Label htmlFor="username">Username</Label>
                 <Input
                   id="username"
-                  type="text"
                   name="username"
-                  placeholder="john123"
+                  type="text"
                   required
                   value={registerData.username}
+                  onChange={handleFormData}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  value={registerData.email}
                   onChange={handleFormData}
                 />
               </div>
@@ -129,13 +123,12 @@ const Register = ({ className, ...props }) => {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="gender">Gender</Label>
+                <Label>Gender</Label>
                 <RadioGroup
-                  defaultValue="male"
-                  onValueChange={(value) => {
-                    setRegisterData((prev) => ({ ...prev, gender: value }));
-                  }}
-                  className="flex gap-3"
+                  value={registerData.gender}
+                  onValueChange={(value) =>
+                    setRegisterData((prev) => ({ ...prev, gender: value }))
+                  }
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="male" id="male" />
@@ -147,22 +140,13 @@ const Register = ({ className, ...props }) => {
                   </div>
                 </RadioGroup>
               </div>
-              <Button type="button" className="w-full" onClick={handleRegister}>
+              <Button
+                type="button"
+                className="w-full"
+                onClick={handleRegister}
+              >
                 Register
               </Button>
-            </div>
-            <div className="mt-4 text-center text-sm">
-              Already have an account?{" "}
-              <a
-                href="#"
-                className="underline underline-offset-4"
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigate("/login");
-                }}
-              >
-                Sign In
-              </a>
             </div>
           </form>
         </CardContent>

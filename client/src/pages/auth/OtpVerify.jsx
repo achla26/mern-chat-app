@@ -9,45 +9,42 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
-import { useSelector, useDispatch } from "react-redux"; 
+import { useState, useCallback } from "react";
+import { useDispatch } from "react-redux";
 import { otpVerifyThunk } from "@/redux/thunks/auth.thunk";
 import { toast } from "react-hot-toast";
 import { useNavigation } from "../../hooks/navigation";
-import { setAuthToken } from "@/utility/axios/axiosInstance";  // Import setAuthToken function
+import { setAuthToken } from "@/utility/axios/axiosInstance";
 
-const OtpVerify = ({ className, ...props }) => { 
-
+const OtpVerify = ({ className, ...props }) => {
   const { navigate } = useNavigation();
   const dispatch = useDispatch();
 
-  let email = sessionStorage.getItem("email"); // Save email
-  
+  const email = sessionStorage.getItem("email");
 
   const [userData, setUserData] = useState({
     email,
-    otp: "", 
+    otp: "",
   });
 
-  const handleFormData = (e) => {
-    setUserData((prev) => {
-      return { ...prev, [e.target.name]: e.target.value };
-    }); 
-  };
+  const handleFormData = useCallback((e) => {
+    const { name, value } = e.target;
+    setUserData((prev) => ({ ...prev, [name]: value }));
+  }, []);
 
-  const handleLogin = async () => {
+  const handleOtpVerification = useCallback(async () => {
     try {
-      const response = await dispatch(otpVerifyThunk(userData)); // Assuming loginUserThunk dispatches the login API request
-  
-      if (response?.payload?.success) { 
-        const token = response.payload.accessToken; // Replace with actual token from API response
-        setAuthToken(token);  // Set the token in Redux and axios headers
-        navigate("/"); // Navigate to the home page
+      const response = await dispatch(otpVerifyThunk(userData));
+      if (response?.payload?.success) {
+        const token = response.payload.accessToken;
+        setAuthToken(token);
+        navigate("/");
       }
     } catch (err) {
-      return toast.error(`An error occurred. ${err}`);
+      toast.error(`An error occurred. ${err}`);
     }
-  };
+  }, [dispatch, userData, navigate]);
+
   return (
     <div
       className={cn(
@@ -58,36 +55,32 @@ const OtpVerify = ({ className, ...props }) => {
     >
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
+          <CardTitle className="text-2xl">Verify OTP</CardTitle>
           <CardDescription>
-            Enter your Email or Username below to login to your account
+            Enter the OTP sent to your email to verify your account
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
-            <div className="flex flex-col gap-6"> 
-              <div className="grid gap-2"> 
+          <form onSubmit={(e) => e.preventDefault()}>
+            <div className="flex flex-col gap-6">
+              <div className="grid gap-2">
+                <Label htmlFor="otp">OTP</Label>
                 <Input
                   id="otp"
                   name="otp"
-                  type="otp"
+                  type="text"
                   required
+                  value={userData.otp}
                   onChange={handleFormData}
                 />
               </div>
               <Button
                 type="button"
                 className="w-full"
-                onClick={handleLogin} 
+                onClick={handleOtpVerification}
               >
-                Login
+                Verify OTP
               </Button>
-            </div>
-            <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{" "}
-              <a href="#" className="underline underline-offset-4">
-                Sign up
-              </a>
             </div>
           </form>
         </CardContent>
@@ -95,4 +88,5 @@ const OtpVerify = ({ className, ...props }) => {
     </div>
   );
 };
+
 export default OtpVerify;

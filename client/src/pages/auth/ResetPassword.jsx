@@ -9,45 +9,43 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useState, useCallback } from "react";
+import { useDispatch } from "react-redux";
 import { resetPasswordThunk } from "@/redux/thunks/auth.thunk";
-import { useNavigate , useParams , Link} from "react-router-dom";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
-const Register = ({ className, ...props }) => {
+const ResetPassword = ({ className, ...props }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { token } = useParams(); // Get token from URL
+  const { token } = useParams();
 
   const [formData, setFormData] = useState({
     password: "",
     confirmPassword: "",
-    token
+    token,
   });
 
-  const handleFormData = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
+  const handleFormData = useCallback((e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  }, []);
 
-  const handleRegister = async () => {
+  const handleResetPassword = useCallback(async () => {
     try {
       if (formData.password !== formData.confirmPassword) {
-        return toast.error("password and confirm password does not match.");
+        return toast.error("Password and confirm password do not match.");
       }
 
       const response = await dispatch(resetPasswordThunk(formData));
       if (response?.payload?.success) {
+        toast.success("Password reset successfully.");
         navigate("/login");
       }
     } catch (err) {
-      return toast.error(`An error occurred.${err}`);
+      toast.error(`An error occurred. ${err}`);
     }
-  };
+  }, [dispatch, formData, navigate]);
 
   return (
     <div
@@ -59,18 +57,16 @@ const Register = ({ className, ...props }) => {
     >
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Register</CardTitle>
+          <CardTitle className="text-2xl">Reset Password</CardTitle>
           <CardDescription>
-            Enter your Details below to Register to your account
+            Enter your new password below to reset your account password
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={(e) => e.preventDefault()}>
             <div className="flex flex-col gap-6">
-            
-             
               <div className="grid gap-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">New Password</Label>
                 <Input
                   id="password"
                   name="password"
@@ -90,23 +86,14 @@ const Register = ({ className, ...props }) => {
                   value={formData.confirmPassword}
                   onChange={handleFormData}
                 />
-              </div> 
-              <Button type="button" className="w-full" onClick={handleRegister}>
-                Register
-              </Button>
-            </div>
-            <div className="mt-4 text-center text-sm">
-              Already have an account?{" "}
-              <a
-                href="#"
-                className="underline underline-offset-4"
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigate("/login");
-                }}
+              </div>
+              <Button
+                type="button"
+                className="w-full"
+                onClick={handleResetPassword}
               >
-                Sign In
-              </a>
+                Reset Password
+              </Button>
             </div>
           </form>
         </CardContent>
@@ -115,4 +102,4 @@ const Register = ({ className, ...props }) => {
   );
 };
 
-export default Register;
+export default ResetPassword;

@@ -9,19 +9,16 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { setAuthToken } from "@/utility/axios/axiosInstance";  // Import setAuthToken function
-import { setAuthUser } from "@/redux/slices/auth.slice";
-
+import { useState, useCallback } from "react";
+import { useDispatch } from "react-redux";
+import { setAuthToken } from "@/utility/axios/axiosInstance";
 import { loginUserThunk } from "@/redux/thunks/auth.thunk";
 import { toast } from "react-hot-toast";
 import { useNavigation } from "../../hooks/navigation";
 import { Link } from "react-router-dom";
 
 const Login = ({ className, ...props }) => {
-  const { navigate} = useNavigation();
-  // const { isAuthenticated } = useSelector((state) => state.user);
+  const { navigate } = useNavigation();
   const dispatch = useDispatch();
 
   const [loginData, setLoginData] = useState({
@@ -29,26 +26,23 @@ const Login = ({ className, ...props }) => {
     password: "",
   });
 
-  const handleFormData = (e) => {
-    setLoginData((prev) => {
-      return { ...prev, [e.target.name]: e.target.value };
-    });
-  };
+  const handleFormData = useCallback((e) => {
+    const { name, value } = e.target;
+    setLoginData((prev) => ({ ...prev, [name]: value }));
+  }, []);
 
-  const handleLogin = async () => {
+  const handleLogin = useCallback(async () => {
     try {
-      const response = await dispatch(loginUserThunk(loginData)); // Assuming loginUserThunk dispatches the login API request
-  
-      if (response?.payload?.success) {  
-        const token = response.payload.accessToken; // Replace with actual token from API response
+      const response = await dispatch(loginUserThunk(loginData));
+      if (response?.payload?.success) {
+        const token = response.payload.accessToken;
         setAuthToken(token);
-        dispatch(setAuthUser(response.payload.user));  
-        navigate("/"); // Navigate to the home page
+        navigate("/");
       }
     } catch (err) {
-      return toast.error(`An error occurred. ${err}`);
+      toast.error(`An error occurred. ${err}`);
     }
-  };
+  }, [dispatch, loginData, navigate]);
 
   return (
     <div
@@ -66,47 +60,42 @@ const Login = ({ className, ...props }) => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={(e) => e.preventDefault()}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
-                <Label htmlFor="identifier">Email/Username</Label>
+                <Label htmlFor="identifier">Email or Username</Label>
                 <Input
                   id="identifier"
-                  type="text"
                   name="identifier"
-                  placeholder="john"
+                  type="text"
                   required
                   value={loginData.identifier}
                   onChange={handleFormData}
                 />
               </div>
               <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                  <Link
-                    to="/forgot-password"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </Link>
-                </div>
+                <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
                   name="password"
                   type="password"
                   required
+                  value={loginData.password}
                   onChange={handleFormData}
                 />
               </div>
-              <Button type="button" className="w-full" onClick={handleLogin}>
+              <Button
+                type="button"
+                className="w-full"
+                onClick={handleLogin}
+              >
                 Login
               </Button>
-            </div>
-            <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{" "}
-              <Link to="register" className="underline underline-offset-4">
-                Sign up
-              </Link>
+              <div className="text-sm text-center">
+                <Link to="/forgot-password" className="text-blue-500 hover:underline">
+                  Forgot Password?
+                </Link>
+              </div>
             </div>
           </form>
         </CardContent>
@@ -114,4 +103,5 @@ const Login = ({ className, ...props }) => {
     </div>
   );
 };
+
 export default Login;
