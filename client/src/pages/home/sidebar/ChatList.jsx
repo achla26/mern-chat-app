@@ -23,16 +23,16 @@ const ChatList = memo(({ chats, chatListComponentLoading }) => {
       : [];
 
   const fetchMessages = useCallback(
-    (chatId) => {
-      dispatch(getUserMessagesThunk({ chatId }));
+    (conversationId) => {
+      dispatch(getUserMessagesThunk({ conversationId }));
     },
     [dispatch]
   );
 
   const handleUserClick = useCallback(
-    (chatId) => {
-      dispatch(setSelectedChatId(chatId));
-      fetchMessages(chatId);
+    (conversationId) => {
+      dispatch(setSelectedChatId(conversationId));
+      fetchMessages(conversationId);
     },
     [dispatch, fetchMessages]
   );

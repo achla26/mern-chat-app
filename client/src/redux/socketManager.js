@@ -6,7 +6,7 @@ import {
   removeOnlineUser,
   setConnectionStatus 
 } from "@/redux/slices/socket.slice";
-import { userData } from "@/utility/helper";
+import { addNewMessage } from "@/redux/slices/chat.slice";
 
 let socket = null;
 let reconnectAttempts = 0;
@@ -51,6 +51,11 @@ export const initializeSocket = (dispatch) => {
         // The server explicitly disconnected, try to reconnect
         socket.connect();
       }
+    });
+
+    socket.on("newMessage", (message) => { 
+      console.log(message)
+      dispatch(addNewMessage(message));
     });
 
     // Reconnect attempts

@@ -1,9 +1,22 @@
 import jwt from "jsonwebtoken";
+import { Server } from "socket.io";
 
 const userSocketMap = {}; // userId: socketId
+let io; // Declare io globally
 
-export default function initializeSocket(io) {
-  // Authentication middleware
+const initializeSocket = (server) => {
+  io = new Server(server, {
+    cors: {
+      origin: process.env.CLIENT_ORIGIN || "http://localhost:3000",
+      credentials: true,
+      methods: ["GET", "POST", "PUT", "DELETE"],
+    },
+    connectionStateRecovery: {
+      maxDisconnectionDuration: 2 * 60 * 1000, // 2 minutes
+      skipMiddlewares: true,
+    },
+  });
+
   io.use(async (socket, next) => {
     try {
       const token = socket.handshake.auth.token;
@@ -29,46 +42,39 @@ export default function initializeSocket(io) {
 
   io.on("connection", (socket) => {
     console.log(`User connected: ${socket.id} (User ID: ${socket.userId})`);
-
-    // Notify all clients about the new connection
     io.emit("onlineUsers", Object.keys(userSocketMap));
 
-    // Message handling
     socket.on("send_message", (data) => {
-      // Example: Broadcast to a project room
-      // io.to(`project_${data.projectId}`).emit("receive_message", {
-      //   ...data,
-      //   sender: socket.userId
-      // });
+      console.log("Message received:", data);
     });
 
-    // Join room handler
     socket.on("join_room", (roomId) => {
       socket.join(roomId);
       console.log(`User ${socket.userId} joined room ${roomId}`);
     });
 
-    // Leave room handler
     socket.on("leave_room", (roomId) => {
       socket.leave(roomId);
       console.log(`User ${socket.userId} left room ${roomId}`);
     });
 
-    // Disconnection handler
     socket.on("disconnect", () => {
       console.log(`User disconnected: ${socket.id} (User ID: ${socket.userId})`);
       delete userSocketMap[socket.userId];
       io.emit("onlineUsers", Object.keys(userSocketMap));
     });
 
-    // Error handling
     socket.on("error", (err) => {
       console.error(`Socket error (${socket.id}):`, err);
     });
   });
-
-  // Optional: Cleanup interval for stale connections
+  
+ // Optional: Cleanup interval for stale connections
   setInterval(() => {
     io.emit("onlineUsers", Object.keys(userSocketMap));
-  }, 60000); // Update online users every minute
-}
+  }, 60000);
+};
+
+const getSocketId = (userId) => userSocketMap[userId];
+
+export { initializeSocket, getSocketId, io };

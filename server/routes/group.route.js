@@ -16,7 +16,7 @@ const router = Router();
  * @access  Private
  */
 
-router.get("/:chatId/members", isUserAuthenticated, getGroupMembers);  
+router.get("/:conversationId/members", isUserAuthenticated, getGroupMembers);  
 
 /**
  * @route   POST /api/v1/groups
@@ -26,28 +26,28 @@ router.get("/:chatId/members", isUserAuthenticated, getGroupMembers);
 router.post("/", isUserAuthenticated, createGroup);
 
 /**
- * @route   POST /api/v1/group/:chatId/members
+ * @route   POST /api/v1/group/:conversationId/members
  * @desc    Add a member to a group chat
  * @access  Private
  */
-router.post("/:chatId/members", isUserAuthenticated, addMemberToGroup);
+router.post("/:conversationId/members", isUserAuthenticated, addMemberToGroup);
 
 /**
- * @route   DELETE /api/v1/group/:chatId/members/:memberId
+ * @route   DELETE /api/v1/group/:conversationId/members/:memberId
  * @desc    Remove a member from a group chat
  * @access  Private
  */
 router.delete(
-  "/:chatId/members/:memberId",
+  "/:conversationId/members/:memberId",
   isUserAuthenticated,
   removeMemberFromGroup
 );
 
 /**
- * @route   PUT /api/v1/groups/:chatId/rename
+ * @route   PUT /api/v1/groups/:conversationId/rename
  * @desc    Rename a group chat
  * @access  Private
  */
-router.put("/:chatId/rename", isUserAuthenticated, renameGroup);
+router.put("/:conversationId/rename", isUserAuthenticated, renameGroup);
 
 export default router;

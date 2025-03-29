@@ -19,7 +19,7 @@ function MessageInput() {
     if (!trimmedMessage) return;
 
     const newMessage = {
-      chatId: selectedChatId,
+      conversationId: selectedChatId,
       message: trimmedMessage,
       senderId: userData?._id, // Replace with actual current user ID
       createdAt: new Date().toISOString(),

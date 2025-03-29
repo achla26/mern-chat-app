@@ -10,6 +10,6 @@ const router = Router();
 
 // File upload routes
 router.post("/avatar", isUserAuthenticated, upload.single("avatar"), uploadAvatar); // Upload profile picture
-router.post("/chat/:chatId", isUserAuthenticated, upload.single("file"), uploadChatFile); // Upload file to a chat
+router.post("/chat/:conversationId", isUserAuthenticated, upload.single("file"), uploadChatFile); // Upload file to a chat
 
 export default router;

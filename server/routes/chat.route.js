@@ -37,26 +37,26 @@ router.post("/", isUserAuthenticated, createChat);
 router.post("/send", isUserAuthenticated, sendMessage);
 
 /**
- * @route   DELETE /api/v1/chats/:chatId
+ * @route   DELETE /api/v1/chats/:conversationId
  * @desc    Delete a chat
  * @access  Private
  */
-router.delete("/:chatId", isUserAuthenticated, deleteChat);
+router.delete("/:conversationId", isUserAuthenticated, deleteChat);
 
 /**
- * @route   GET /api/v1/chats/:chatId/messages
+ * @route   GET /api/v1/chats/:conversationId/messages
  * @desc    Get all messages for a specific conversation
  * @access  Private
  */
-router.get("/:chatId/messages", isUserAuthenticated, getMessagesByConversationId);
+router.get("/:conversationId/messages", isUserAuthenticated, getMessagesByConversationId);
 
 /**
- * @route   POST /api/v1/chats/:chatId/read
+ * @route   POST /api/v1/chats/:conversationId/read
  * @desc    Mark messages as read in a chat
  * @access  Private
  */
 
 //TO DO CHECKING
-router.post("/:chatId/read", isUserAuthenticated, markMessagesAsRead);
+router.post("/:conversationId/read", isUserAuthenticated, markMessagesAsRead);
 
 export default router;

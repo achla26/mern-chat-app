@@ -39,10 +39,10 @@ export const createGroup = asyncHandler(async (req, res) => {
  * Add a member to a group chat.
  */
 export const addMemberToGroup = asyncHandler(async (req, res) => {
-  const { chatId } = req.params; // Get the chat ID from the request params
+  const { conversationId } = req.params; // Get the chat ID from the request params
   const { memberId } = req.body; // Get the member ID from the request body
 
-  const updatedChat = await addMemberToGroupService(chatId, memberId);
+  const updatedChat = await addMemberToGroupService(conversationId, memberId);
 
   return res
     .status(200)
@@ -55,10 +55,10 @@ export const addMemberToGroup = asyncHandler(async (req, res) => {
  * Remove a member from a group chat.
  */
 export const removeMemberFromGroup = asyncHandler(async (req, res) => {
-  const { chatId } = req.params; // Get the chat ID from the request params
+  const { conversationId } = req.params; // Get the chat ID from the request params
   const { memberId } = req.body; // Get the member ID from the request body
 
-  const updatedChat = await removeMemberFromGroupService(chatId, memberId);
+  const updatedChat = await removeMemberFromGroupService(conversationId, memberId);
 
   return res
     .status(200)
@@ -71,10 +71,10 @@ export const removeMemberFromGroup = asyncHandler(async (req, res) => {
  * Rename a group chat.
  */
 export const renameGroup = asyncHandler(async (req, res) => {
-  const { chatId } = req.params; // Get the chat ID from the request params
+  const { conversationId } = req.params; // Get the chat ID from the request params
   const { groupName } = req.body; // Get the new group name from the request body
 
-  const updatedChat = await renameGroupService(chatId, groupName);
+  const updatedChat = await renameGroupService(conversationId, groupName);
 
   return res
     .status(200)

@@ -11,7 +11,7 @@ export const getUserChatsThunk = createThunk(
 
 export const getUserMessagesThunk = createThunk(
   "getUserMessages",
-  (payload) => axiosInstance.get(`chats/${payload.chatId}/messages`, payload),
+  (payload) => axiosInstance.get(`chats/${payload.conversationId}/messages`, payload),
   "fetch Messages successfully!"
 );
  

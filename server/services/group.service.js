@@ -34,20 +34,20 @@ export const createGroupService = async (creatorId, members, groupName) => {
 
 /**
  * Add a member to a group chat.
- * @param {string} chatId - The ID of the group chat.
+ * @param {string} conversationId - The ID of the group chat.
  * @param {string} memberId - The ID of the member to add.
  * @returns {Promise<Object>} - The updated group chat.
  */
-export const addMemberToGroupService = async (chatId, memberId) => {
+export const addMemberToGroupService = async (conversationId, memberId) => {
   try {
     // Validate input
-    if (!chatId || !memberId) {
+    if (!conversationId || !memberId) {
       throw new ApiError(400, "Chat ID and member ID are required.");
     }
 
     // Add the member to the group chat
     const updatedChat = await Conversation.findByIdAndUpdate(
-      chatId,
+      conversationId,
       { $addToSet: { members: memberId } }, // Add member if not already present
       { new: true }
     );
@@ -60,20 +60,20 @@ export const addMemberToGroupService = async (chatId, memberId) => {
 
 /**
  * Remove a member from a group chat.
- * @param {string} chatId - The ID of the group chat.
+ * @param {string} conversationId - The ID of the group chat.
  * @param {string} memberId - The ID of the member to remove.
  * @returns {Promise<Object>} - The updated group chat.
  */
-export const removeMemberFromGroupService = async (chatId, memberId) => {
+export const removeMemberFromGroupService = async (conversationId, memberId) => {
   try {
     // Validate input
-    if (!chatId || !memberId) {
+    if (!conversationId || !memberId) {
       throw new ApiError(400, "Chat ID and member ID are required.");
     }
 
     // Remove the member from the group chat
     const updatedChat = await Conversation.findByIdAndUpdate(
-      chatId,
+      conversationId,
       { $pull: { members: memberId } }, // Remove the member
       { new: true }
     );
@@ -86,20 +86,20 @@ export const removeMemberFromGroupService = async (chatId, memberId) => {
 
 /**
  * Rename a group chat.
- * @param {string} chatId - The ID of the group chat.
+ * @param {string} conversationId - The ID of the group chat.
  * @param {string} groupName - The new name of the group.
  * @returns {Promise<Object>} - The updated group chat.
  */
-export const renameGroupService = async (chatId, groupName) => {
+export const renameGroupService = async (conversationId, groupName) => {
   try {
     // Validate input
-    if (!chatId || !groupName?.trim()) {
+    if (!conversationId || !groupName?.trim()) {
       throw new ApiError(400, "Chat ID and group name are required.");
     }
 
     // Rename the group chat
     const updatedChat = await Conversation.findByIdAndUpdate(
-      chatId,
+      conversationId,
       { groupName },
       { new: true }
     );
@@ -112,15 +112,15 @@ export const renameGroupService = async (chatId, groupName) => {
 
 /**
  * Delete a chat by ID.
- * @param {string} chatId - The ID of the chat to delete.
+ * @param {string} conversationId - The ID of the chat to delete.
  * @param {string} userId - The ID of the authenticated user.
  * @returns {Promise<Object>} - The deleted chat.
  */
-export const deleteChatService = async (chatId, userId) => {
+export const deleteChatService = async (conversationId, userId) => {
   try {
     // Find and delete the chat if the user is a member
     const chat = await Conversation.findOneAndDelete({
-      _id: chatId,
+      _id: conversationId,
       members: userId, // Ensure the user is a member of the chat
     });
 
@@ -129,7 +129,7 @@ export const deleteChatService = async (chatId, userId) => {
     }
 
     // Delete all messages in the chat
-    await Message.deleteMany({ conversationId: chatId });
+    await Message.deleteMany({ conversationId: conversationId });
 
     return chat;
   } catch (error) {
@@ -139,16 +139,16 @@ export const deleteChatService = async (chatId, userId) => {
 
 /**
  * Mark messages as read in a chat.
- * @param {string} chatId - The ID of the chat.
+ * @param {string} conversationId - The ID of the chat.
  * @param {string} userId - The ID of the authenticated user.
  * @returns {Promise<Object>} - The updated chat.
  */
-export const markMessagesAsReadService = async (chatId, userId) => {
+export const markMessagesAsReadService = async (conversationId, userId) => {
   try {
     // Mark all unread messages in the chat as read
     const updatedMessages = await Message.updateMany(
       {
-        conversationId: chatId,
+        conversationId: conversationId,
         readBy: { $ne: userId }, // Messages not already read by the user
       },
       { $addToSet: { readBy: userId } } // Add the user to the readBy array
@@ -159,7 +159,7 @@ export const markMessagesAsReadService = async (chatId, userId) => {
     }
 
     // Return the updated chat
-    const chat = await Conversation.findById(chatId).populate("lastMessage");
+    const chat = await Conversation.findById(conversationId).populate("lastMessage");
     return chat;
   } catch (error) {
     throw new ApiError(500, "Error while marking messages as read.");

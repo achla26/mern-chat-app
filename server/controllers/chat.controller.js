@@ -60,9 +60,9 @@ export const sendMessage = asyncHandler(async (req, res) => {
  */
 export const deleteChat = asyncHandler(async (req, res) => {
   const userId = req.user._id; // Get the authenticated user's ID
-  const { chatId } = req.params; // Get the chat ID from the request params
+  const { conversationId } = req.params; // Get the chat ID from the request params
 
-  const data = await deleteChatService(chatId, userId);
+  const data = await deleteChatService(conversationId, userId);
 
   return res
     .status(200)
@@ -74,9 +74,9 @@ export const deleteChat = asyncHandler(async (req, res) => {
  */
 export const markMessagesAsRead = asyncHandler(async (req, res) => {
   const userId = req.user._id; // Get the authenticated user's ID
-  const { chatId } = req.params; // Get the chat ID from the request params
+  const { conversationId } = req.params; // Get the chat ID from the request params
 
-  const data = await markMessagesAsReadService(chatId, userId);
+  const data = await markMessagesAsReadService(conversationId, userId);
 
   return res
     .status(200)
@@ -89,12 +89,12 @@ export const markMessagesAsRead = asyncHandler(async (req, res) => {
  * Get all messages for a specific conversation.
  */
 export const getMessagesByConversationId = asyncHandler(async (req, res) => {
-  const { chatId } = req.params; // Get the conversation ID from the request params
+  const { conversationId } = req.params; // Get the conversation ID from the request params
   const senderId = req.user._id; // Get the authenticated user's ID
   const { page = 1, limit = 20 } = req.query; // Get pagination parameters
 
   const data = await getMessagesByConversationIdService(
-    chatId,
+    conversationId,
     senderId,
     parseInt(page),
     parseInt(limit)

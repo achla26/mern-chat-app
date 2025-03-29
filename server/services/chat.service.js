@@ -3,7 +3,7 @@ import { User } from "../models/user.model.js";
 import { Conversation } from "../models/conversation.model.js";
 import mongoose from "mongoose";
 import { ApiError } from "../utils/ApiError.js";
-
+import { getSocketId , io } from "../socket.js"
 /**
  * Get all chats for a user, including the chat name (group name or other person's name).
  * @param {string} userId - The ID of the user.
@@ -186,6 +186,11 @@ export const sendMessageService = async (
       });
     }
 
+    if(!isGroup){
+      const socketId = getSocketId(receiverIds[0])
+      io.to(socketId).emit("newMessage", newMessage);
+    }
+  
     return newMessage;
   } catch (error) {
     throw error;
@@ -276,20 +281,20 @@ export const getMessagesByConversationIdService = async (
 };
 /**
  * Add a member to a group chat.
- * @param {string} chatId - The ID of the group chat.
+ * @param {string} conversationId - The ID of the group chat.
  * @param {string} memberId - The ID of the member to add.
  * @returns {Promise<Object>} - The updated group chat.
  */
-export const addMemberToGroupService = async (chatId, memberId) => {
+export const addMemberToGroupService = async (conversationId, memberId) => {
   try {
     // Validate input
-    if (!chatId || !memberId) {
+    if (!conversationId || !memberId) {
       throw new ApiError(400, "Chat ID and member ID are required.");
     }
 
     // Add the member to the group chat
     const updatedChat = await Conversation.findByIdAndUpdate(
-      chatId,
+      conversationId,
       { $addToSet: { members: memberId } }, // Add member if not already present
       { new: true }
     );
@@ -302,20 +307,20 @@ export const addMemberToGroupService = async (chatId, memberId) => {
 
 /**
  * Remove a member from a group chat.
- * @param {string} chatId - The ID of the group chat.
+ * @param {string} conversationId - The ID of the group chat.
  * @param {string} memberId - The ID of the member to remove.
  * @returns {Promise<Object>} - The updated group chat.
  */
-export const removeMemberFromGroupService = async (chatId, memberId) => {
+export const removeMemberFromGroupService = async (conversationId, memberId) => {
   try {
     // Validate input
-    if (!chatId || !memberId) {
+    if (!conversationId || !memberId) {
       throw new ApiError(400, "Chat ID and member ID are required.");
     }
 
     // Remove the member from the group chat
     const updatedChat = await Conversation.findByIdAndUpdate(
-      chatId,
+      conversationId,
       { $pull: { members: memberId } }, // Remove the member
       { new: true }
     );
@@ -328,15 +333,15 @@ export const removeMemberFromGroupService = async (chatId, memberId) => {
 
 /**
  * Delete a chat by ID.
- * @param {string} chatId - The ID of the chat to delete.
+ * @param {string} conversationId - The ID of the chat to delete.
  * @param {string} userId - The ID of the authenticated user.
  * @returns {Promise<Object>} - The deleted chat.
  */
-export const deleteChatService = async (chatId, userId) => {
+export const deleteChatService = async (conversationId, userId) => {
   try {
     // Find and delete the chat if the user is a member
     const chat = await Conversation.findOneAndDelete({
-      _id: chatId,
+      _id: conversationId,
       members: userId, // Ensure the user is a member of the chat
     });
 
@@ -345,7 +350,7 @@ export const deleteChatService = async (chatId, userId) => {
     }
 
     // Delete all messages in the chat
-    await Message.deleteMany({ conversationId: chatId });
+    await Message.deleteMany({ conversationId: conversationId });
 
     return chat;
   } catch (error) {
@@ -355,16 +360,16 @@ export const deleteChatService = async (chatId, userId) => {
 
 /**
  * Mark messages as read in a chat.
- * @param {string} chatId - The ID of the chat.
+ * @param {string} conversationId - The ID of the chat.
  * @param {string} userId - The ID of the authenticated user.
  * @returns {Promise<Object>} - The updated chat.
  */
-export const markMessagesAsReadService = async (chatId, userId) => {
+export const markMessagesAsReadService = async (conversationId, userId) => {
   try {
     // Mark all unread messages in the chat as read
     const updatedMessages = await Message.updateMany(
       {
-        conversationId: chatId,
+        conversationId: conversationId,
         readBy: { $ne: userId }, // Messages not already read by the user
       },
       { $addToSet: { readBy: userId } } // Add the user to the readBy array
@@ -375,7 +380,7 @@ export const markMessagesAsReadService = async (chatId, userId) => {
     }
 
     // Return the updated chat
-    const chat = await Conversation.findById(chatId).populate("lastMessage");
+    const chat = await Conversation.findById(conversationId).populate("lastMessage");
     return chat;
   } catch (error) {
     throw new ApiError(500, "Error while marking messages as read.");
