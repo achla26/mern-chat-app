@@ -7,7 +7,7 @@ import {
   getUserChatsThunk,
   getUserMessagesThunk,
 } from "@/redux/thunks/chat.thunk";
-import { initializeSocket} from "@/redux/slices/socket.slice";
+import { initializeSocket} from "@/redux/socketManager";  
 import { logoutUserThunk } from "@/redux/thunks/auth.thunk";
 import { toast } from "react-hot-toast";
 import { useNavigation } from "../../hooks/navigation";
@@ -26,12 +26,7 @@ function Home() {
 
    // Initialize socket on mount
    useEffect(() => {
-    dispatch(initializeSocket());
-    
-    return () => {
-      // Cleanup on unmount
-      // dispatch(disconnectSocket());
-    };
+    initializeSocket(dispatch); // Initialize socket
   }, [dispatch]);
  
   // logout functionality

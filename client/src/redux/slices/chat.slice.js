@@ -90,8 +90,7 @@ export const chatSlice = createSlice({
       .addCase(getUserMessagesThunk.pending, (state) => {
         state.chatAreaComponentLoading = true;
       })
-      .addCase(getUserMessagesThunk.fulfilled, (state, action) => {
-        console.log(action.payload.data);
+      .addCase(getUserMessagesThunk.fulfilled, (state, action) => { 
         const { conversationId, messages, participants } = action.payload.data;
 
         // Store messages

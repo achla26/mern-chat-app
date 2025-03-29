@@ -29,18 +29,10 @@ export default function initializeSocket(io) {
 
   // Connection handler
   io.on("connection", (socket) => {
+    console.log(`server=> User connected: ${socket.id}`);
+
     io.emit("onlineUsers", Object.keys(userSocketMap)); // Emit online users to all clients
-    // socket.emit("userId", socket.userId); // Emit user ID to the connected client
 
-    // console.log(`User connected: ${socket.id} | User ID: ${socket.userId}`);
-
-    // Join room based on projectId
-    // const projectId = socket.handshake.query.projectId;
-    // if (projectId) {
-    //   socket.join(`project_${projectId}`);
-    // }
-
-    // Handle custom events
     socket.on("send_message", (data) => {
       // Broadcast to project room
       //   io.to(`project_${data.projectId}`).emit("receive_message", {
@@ -50,6 +42,8 @@ export default function initializeSocket(io) {
     });
 
     socket.on("disconnect", () => {
+      delete  userSocketMap[socket.userId]; // Remove the user from the map
+      io.emit("onlineUser", Object.keys(userSocketMap)); // Notify all clients about the disconnection
       console.log(`User disconnected: ${socket.id}`);
     });
 

@@ -6,8 +6,7 @@ const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        // ignoredActions: ["socket/initializeSocket"],
-        // ignoredActionPaths: ["socket.socket"],
+        ignoredActions: ["socket/setSocket"], // Ignore this specific action
         ignoredPaths: ["socket.socket"],
       },
     }),
