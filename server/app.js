@@ -25,15 +25,13 @@ app.use(cookieParser());
 import authRouter from "./routes/auth.route.js";
 import userRouter from "./routes/user.route.js";
 import chatRouter from "./routes/chat.route.js";
-import groupRouter from "./routes/group.route.js";
-import messageRoute from "./routes/message.route.js";
+import groupRouter from "./routes/group.route.js"; 
 
 // API Routes
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/chats", chatRouter);
-app.use("/api/v1/groups", groupRouter);
-app.use("/api/v1/message", messageRoute);
+app.use("/api/v1/groups", groupRouter); 
 
 // Health check
 app.get("/health", (req, res) => res.status(200).json({ status: "OK" }));
