@@ -10,7 +10,7 @@ function MessageList({ messages, chatAreaComponentLoading }) {
     if (MessageRef.current) {
       MessageRef.current.scrollTop = MessageRef.current.scrollHeight;
     }
-  }, []);
+  }, [messages]); // Re-scroll when messages change
 
   const messageArray = Array.isArray(messages)
     ? messages

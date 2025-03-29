@@ -50,19 +50,13 @@ export const chatSlice = createSlice({
       safeSessionStorage.removeItem("selectedChatId");
     },
     addNewMessage: (state, action) => {
-      const { chatId, message } = action.payload;
-
-      // Initialize message array if doesn't exist
-      if (!Array.isArray(state.messages[chatId])) {
-        state.messages[chatId] = [];
-      }
-
-      // Add new message at beginning (chronological order)
-      state.messages[chatId].unshift(message);
-
-      // Update last message in chat object
-      if (state.chats[chatId]) {
-        state.chats[chatId].lastMessage = message;
+      const { chatId, ...message } = action.payload;
+      const chat = state.chats[chatId]; // Access chat by chatId
+      if (chat) {
+        if (!Array.isArray(state.messages[chatId])) {
+          state.messages[chatId] = [];
+        }
+        state.messages[chatId].push(message); // Add the message to the messages array
       }
     },
     resetChatState: () => initialState,

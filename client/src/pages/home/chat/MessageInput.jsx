@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { sendMessageThunk } from "@/redux/thunks/chat.thunk";
 import { addNewMessage  } from "@/redux/slices/chat.slice";
 import { useState } from "react";
+import { userData } from "@/utility/helper";
 
 function MessageInput() {
   const { selectedChatId, otherParticipants } = useSelector(
@@ -14,15 +15,26 @@ function MessageInput() {
   const handleSendMessage = (e) => {
     e.preventDefault();
 
+    const trimmedMessage = message.trim();
+    if (!trimmedMessage) return;
+
+    const newMessage = {
+      chatId: selectedChatId,
+      message: trimmedMessage,
+      senderId: userData?._id, // Replace with actual current user ID
+      createdAt: new Date().toISOString(),
+    };
+
+    dispatch(addNewMessage(newMessage)); // Add the new message to the Redux store
+
     dispatch(
-      setNewMessage(message),
-      // addNewMessage({chatId : selectedChatId,message: message.trim()}),
       sendMessageThunk({
         conversationId: selectedChatId,
         receiverIds: otherParticipants,
-        message: message.trim(),
+        message: trimmedMessage,
       })
     );
+
     setMessage("");
   };
 
