@@ -48,8 +48,7 @@ export const initializeSocket = (dispatch) => {
       console.log("Disconnected from socket server:", reason);
       dispatch(setConnectionStatus(false));
       if (reason === "io server disconnect") {
-        // The server explicitly disconnected, try to reconnect
-        socket.connect();
+        socket.connect(); // Attempt reconnection
       }
     });
 
@@ -73,6 +72,7 @@ export const initializeSocket = (dispatch) => {
     socket.on("connect_error", (err) => {
       console.error("Connection error:", err.message);
       if (err.message === "Authentication failed") {
+        console.warn("Redirecting to login due to authentication failure.");
         // Handle authentication failure (e.g., redirect to login)
       }
     });

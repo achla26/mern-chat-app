@@ -8,7 +8,7 @@ import {
 } from "../thunks/auth.thunk";
 import Cookies from "js-cookie";
 import { safeLocalStorage } from "@/utility/helper";
- 
+
 const loadInitialState = () => {
   const accessToken = Cookies.get("accessToken");
   const refreshToken = Cookies.get("refreshToken");
@@ -30,7 +30,7 @@ export const authSlice = createSlice({
   name: "auth",
   initialState: loadInitialState(),
   reducers: {
-    setAuthUser: (state, action) => { 
+    setAuthUser: (state, action) => {
       state.user = action.payload;
       safeLocalStorage.setItem("user", JSON.stringify(action.payload));
     },
@@ -42,14 +42,13 @@ export const authSlice = createSlice({
       state.refreshToken = refreshToken;
 
       // Set cookies
-      Cookies.set("accessToken", accessToken, { 
+      Cookies.set("accessToken", accessToken, {
         expires: 1, // 1 day expiry
       });
-      
-      Cookies.set("refreshToken", refreshToken, { 
+
+      Cookies.set("refreshToken", refreshToken, {
         expires: 7, // 7 days expiry
       });
-      
     },
     clearTokens: (state) => {
       // Clear Redux state
@@ -59,7 +58,6 @@ export const authSlice = createSlice({
       // Remove cookies
       Cookies.remove("accessToken");
       Cookies.remove("refreshToken");
- 
     },
     logout: (state) => {
       state.isAuthenticated = false;
@@ -84,6 +82,9 @@ export const authSlice = createSlice({
         state.isAuthenticated = true;
         state.userProfile = action?.payload?.user;
         state.buttonLoading = false;
+
+        // Store user data in localStorage
+        safeLocalStorage.setItem("user", JSON.stringify(action?.payload?.user));
       });
 
     //register user

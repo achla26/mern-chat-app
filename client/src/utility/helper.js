@@ -52,8 +52,8 @@ export const userData = currentUserDetails();
 
 export const getOtherParticipant = (chat, currentUserId = userData?._id) => {
   // For one-to-one chats
-  if (!chat.isGroup) {
-    return chat.members.find(member => member !== currentUserId);
+  if (!chat?.isGroup) {
+    return chat?.members.find(member => member !== currentUserId);
   }
   // For group chats (you might want to handle differently)
   return null;
