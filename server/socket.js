@@ -17,29 +17,23 @@ const initializeSocket = (server) => {
     },
   });
 
+  // Middleware for authentication
   io.use(async (socket, next) => {
     try {
       const token = socket.handshake.auth.token;
-      if (!token) {
-        return next(new Error("Authentication required"));
-      }
+      if (!token) return next(new Error("Authentication required"));
 
       const decoded = jwt.verify(token, process.env.JWT_ACCESS_TOKEN_SECRET);
-      if (!decoded) {
-        return next(new Error("Invalid token"));
-      }
-
       socket.userId = decoded.userId;
       userSocketMap[socket.userId] = socket.id;
       next();
     } catch (err) {
-      if (err.name === "TokenExpiredError") {
-        return next(new Error("Token expired"));
-      }
-      return next(new Error("Authentication failed"));
+      const errorMessage = err.name === "TokenExpiredError" ? "Token expired" : "Authentication failed";
+      return next(new Error(errorMessage));
     }
   });
 
+  // Socket event handlers
   io.on("connection", (socket) => {
     console.log(`User connected: ${socket.id} (User ID: ${socket.userId})`);
     io.emit("onlineUsers", Object.keys(userSocketMap));
@@ -68,8 +62,8 @@ const initializeSocket = (server) => {
       console.error(`Socket error (${socket.id}):`, err);
     });
   });
-  
- // Optional: Cleanup interval for stale connections
+
+  // Periodic cleanup of stale connections
   setInterval(() => {
     io.emit("onlineUsers", Object.keys(userSocketMap));
   }, 60000);

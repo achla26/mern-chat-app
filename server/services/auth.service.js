@@ -9,6 +9,13 @@ import {
 import { generateTokens } from "../utils/generateToken.js";
 import crypto from "crypto";
 
+// Utility function to validate required fields
+const validateFields = (fields, errorMessage) => {
+  if (fields.some((field) => !field?.trim())) {
+    throw new ApiError(400, errorMessage);
+  }
+};
+
 export const signUpService = async (
   fullName,
   username,
@@ -17,30 +24,21 @@ export const signUpService = async (
   gender
 ) => {
   try {
-    // Check if all required fields are provided and trimmed
-    if (
-      [fullName, username, email, password, gender].some(
-        (field) => !field?.trim()
-      )
-    ) {
-      throw new ApiError(400, "All fields are required.");
-    }
+    validateFields([fullName, username, email, password, gender], "All fields are required.");
 
-    // Check if a user with the same email already exists
-    const existingUserByEmail = await User.findOne({ email });
+    const [existingUserByEmail, existingUserByUsername] = await Promise.all([
+      User.findOne({ email }),
+      User.findOne({ username }),
+    ]);
 
     if (existingUserByEmail) {
       throw new ApiError(409, "User with this email already exists.");
     }
 
-    // Check if a user with the same username already exists
-    const existingUserByUsername = await User.findOne({ username });
-
     if (existingUserByUsername) {
       throw new ApiError(409, "User with this username already exists.");
     }
 
-    // Create user data object
     const userData = {
       fullName: fullName.trim(),
       username: username.trim(),
@@ -50,36 +48,28 @@ export const signUpService = async (
       verificationCodeExpiresAt: Date.now() + 10 * 60 * 1000, // 10 minutes
     };
 
-    // Create the user in the database
     const user = await User.create(userData);
-
-    // Generate a verification code for the user
     const verificationCode = await user.generateVerificationCode();
 
-    // Save the user with the verification code
     await user.save();
 
-    // Check if OTP attempts are allowed
     if (await OTPAttempt(user)) {
       // await sendVerificationEmail(user.email, verificationCode);  // TO DO: UNCOMMENT IN PRODUCTION
     } else {
       throw new ApiError(500, "Too many attempts, please try again later.");
     }
 
-    // Return the created user
     return user;
   } catch (error) {
-    // Handle any errors
     throw error;
   }
 };
 
 export const verifyOTPService = async (email, otp, res) => {
   try {
-    if ([otp, email].some((field) => !field?.trim())) {
-      throw new ApiError(400, "All fields are required.");
-    }
-    let user = await User.findOne({ email, isVerified: false });
+    validateFields([otp, email], "All fields are required.");
+
+    const user = await User.findOne({ email, isVerified: false });
 
     if (!user) {
       throw new ApiError(400, "User Not Found");
@@ -89,24 +79,20 @@ export const verifyOTPService = async (email, otp, res) => {
       throw new ApiError(400, "Invalid OTP.");
     }
 
-    const currentTime = Date.now();
-
-    const verificationCodeExpiresAt = new Date(
-      user.verificationCodeExpiresAt
-    ).getTime();
-
-    if (currentTime > verificationCodeExpiresAt) {
+    if (Date.now() > new Date(user.verificationCodeExpiresAt).getTime()) {
       throw new ApiError(400, "OTP Expired.");
     }
 
     const { accessToken } = await generateTokens(user._id, res);
 
-    user.isVerified = true;
-    user.verificationCode = null;
-    user.verificationCodeExpiresAt = null;
-    user.accessToken = accessToken;
+    Object.assign(user, {
+      isVerified: true,
+      verificationCode: null,
+      verificationCodeExpiresAt: null,
+      accessToken,
+    });
 
-    user = await user.save({ validateModifiedOnly: true });
+    await user.save({ validateModifiedOnly: true });
 
     return { user, accessToken };
   } catch (error) {
@@ -116,11 +102,8 @@ export const verifyOTPService = async (email, otp, res) => {
 
 export const signInService = async (identifier, password, res) => {
   try {
-    if ([identifier, password].some((field) => !field?.trim())) {
-      throw new ApiError(400, "All fields are required.");
-    }
+    validateFields([identifier, password], "All fields are required.");
 
-    // Find the user by email or username
     const user = await User.findOne({
       $or: [{ email: identifier }, { username: identifier }],
     }).select("+password -__v -createdAt -updatedAt");
@@ -133,16 +116,12 @@ export const signInService = async (identifier, password, res) => {
       throw new ApiError(400, "User is not verified.");
     }
 
-    // Validate password
-    const isPasswordValid = await user.comparePassword(password);
-    if (!isPasswordValid) {
+    if (!(await user.comparePassword(password))) {
       throw new ApiError(401, "Invalid User Credentials.");
     }
 
-    // Generate tokens (access + refresh)
     const { accessToken } = await generateTokens(user._id, res);
 
-    // Update last login time
     user.lastLogin = new Date();
     await user.save();
 
@@ -152,7 +131,7 @@ export const signInService = async (identifier, password, res) => {
         username: user.username,
         email: user.email,
         fullName: user.fullName,
-        avatar: user.avatar, 
+        avatar: user.avatar,
         lastLogin: user.lastLogin,
       },
       accessToken,
@@ -164,38 +143,38 @@ export const signInService = async (identifier, password, res) => {
 
 export const resendOtpService = async (email) => {
   try {
-    if ([email].some((field) => !field?.trim())) {
-      throw new ApiError(400, "All fields are required.");
-    }
+    validateFields([email], "All fields are required.");
 
     const user = await User.findOne({ email });
 
     if (!user) {
-      throw new ApiError(409, "User does not exists.");
+      throw new ApiError(409, "User does not exist.");
     }
 
     const verificationCode = await user.generateVerificationCode();
 
-    user.verificationCode = verificationCode;
-    user.verificationCodeExpiresAtsAt = Date.now() + 10 * 60 * 1000;
+    Object.assign(user, {
+      verificationCode,
+      verificationCodeExpiresAt: Date.now() + 10 * 60 * 1000,
+    });
 
     await user.save({ validateModifiedOnly: true });
 
     if (await OTPAttempt(user)) {
-      //await sendVerificationEmail(user.email , verificationCode);  # TO DO : UNCOMMENT IN PRODUCTION
+      // await sendVerificationEmail(user.email, verificationCode);  // TO DO: UNCOMMENT IN PRODUCTION
     } else {
       throw new ApiError(500, "Too many attempts, please try again later.");
     }
+
     return user;
   } catch (error) {
     throw error;
   }
 };
+
 export const forgotPasswordService = async (email) => {
   try {
-    if ([email].some((field) => !field?.trim())) {
-      throw new ApiError(400, "All fields are required.");
-    }
+    validateFields([email], "All fields are required.");
 
     const user = await User.findOne({ email, isVerified: true });
 
@@ -207,22 +186,21 @@ export const forgotPasswordService = async (email) => {
     await user.save({ validateBeforeSave: false });
     const resetPasswordUrl = `${process.env.CLIENT_ORIGIN}/reset-password/${resetToken}`;
 
-    // await sendPasswordResetEmail(user.email , `${resetPasswordUrl}`);  // TO DO : UNCOMMENT IN PRODUCTION
+    // await sendPasswordResetEmail(user.email, `${resetPasswordUrl}`);  // TO DO: UNCOMMENT IN PRODUCTION
 
     return { resetPasswordUrl };
   } catch (error) {
     throw error;
   }
 };
+
 export const resetPasswordService = async (
   token,
   password,
   confirmPassword
 ) => {
   try {
-    if ([token, password, confirmPassword].some((field) => !field?.trim())) {
-      throw new ApiError(400, "All fields are required.");
-    }
+    validateFields([token, password, confirmPassword], "All fields are required.");
 
     const passwordToken = crypto
       .createHash("sha256")
@@ -247,7 +225,7 @@ export const resetPasswordService = async (
     user.resetPasswordExpiresAt = undefined;
     await user.save();
 
-    // await sendResetSuccessEmail(user.email);  // TO DO : UNCOMMENT IN PRODUCTION
+    // await sendResetSuccessEmail(user.email);  // TO DO: UNCOMMENT IN PRODUCTION
 
     return true;
   } catch (error) {

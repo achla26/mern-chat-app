@@ -82,6 +82,10 @@ export const FindConversation = async (
   receiverIds,
   isGroup = false
 ) => {
+  if (!senderId || !receiverIds || receiverIds.length === 0) {
+    throw new ApiError(400, "Invalid sender or receiver IDs.");
+  }
+
   let members = [senderId, receiverIds[0]];
   if (isGroup) {
     members = [senderId, ...receiverIds];
@@ -147,6 +151,10 @@ export const sendMessageService = async (
   isGroup = false
 ) => {
   try {
+    console.log("Sender ID:", senderId);
+    console.log("Receiver IDs:", receiverIds);
+    console.log("Message:", message);
+
     // Validate input
     if ([senderId.toString(), message].some((field) => !field?.trim())) {
       throw new ApiError(400, "Sender ID and message are required.");
@@ -186,13 +194,14 @@ export const sendMessageService = async (
       });
     }
 
-    if(!isGroup){
-      const socketId = getSocketId(receiverIds[0])
+    if (!isGroup) {
+      const socketId = getSocketId(receiverIds[0]);
       io.to(socketId).emit("newMessage", newMessage);
     }
-  
+
     return newMessage;
   } catch (error) {
+    console.error("Error in sendMessageService:", error);
     throw error;
   }
 };
@@ -226,11 +235,12 @@ export const getMessagesByConversationIdService = async (
 
     // Get paginated messages (without populating)
     const messages = await Message.find({ conversationId })
-      // .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
       .select("_id message createdAt readBy senderId receiverIds")
       .lean();
+
+    console.log("Fetched messages:", messages);
 
     // Get all unique user IDs in the conversation
     const userIds = [
@@ -238,7 +248,6 @@ export const getMessagesByConversationIdService = async (
     ];
 
     // Fetch all participants' details in one query
-
     const members = await User.find({
       _id: {
         $in: userIds,
@@ -247,7 +256,7 @@ export const getMessagesByConversationIdService = async (
     }).select("_id fullName email").lean();
 
     // Create participant map for quick lookup
-     const participants = members.reduce((map, user) => {
+    const participants = members.reduce((map, user) => {
       map[user._id.toString()] = user;
       return map;
     }, {});
@@ -262,7 +271,6 @@ export const getMessagesByConversationIdService = async (
         message: msg.message,
         createdAt: msg.createdAt,
         readBy: msg.readBy || [],
-        // Only include references to participants
         senderId: msg.senderId,
         receiverIds: msg.receiverIds,
       })),
@@ -276,6 +284,7 @@ export const getMessagesByConversationIdService = async (
       },
     };
   } catch (error) {
+    console.error("Error in getMessagesByConversationIdService:", error);
     throw new ApiError(500, error.message || "Failed to fetch messages");
   }
 };

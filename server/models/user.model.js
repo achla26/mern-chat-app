@@ -58,6 +58,7 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+// Hash password before saving
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
 
@@ -65,34 +66,38 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
+// Compare passwords
 userSchema.methods.comparePassword = async function (password) {
-  return await bcrypt.compare(password, this.password);
+  return bcrypt.compare(password, this.password);
 };
 
+// Generate a random verification code
 userSchema.methods.generateVerificationCode = function () {
-  function generateRandomFiveDigitNumber() {
+  const generateRandomFiveDigitNumber = () => {
     const firstDigit = Math.floor(Math.random() * 9) + 1;
     const remainingDigits = Math.floor(Math.random() * 10000)
       .toString()
       .padStart(4, 0);
 
     return parseInt(firstDigit + remainingDigits);
-  }
+  };
+
   const verificationCode = generateRandomFiveDigitNumber();
   this.verificationCode = verificationCode;
-  this.verificationCodeExpire = Date.now() + 10 * 60 * 1000;
+  this.verificationCodeExpiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
 
   return verificationCode;
 };
 
+// Generate a reset password token
 userSchema.methods.generateResetPasswordToken = function () {
-  const resetToken = crypto.randomBytes(20).toString("hex"); 
+  const resetToken = crypto.randomBytes(20).toString("hex");
   this.resetPasswordToken = crypto
     .createHash("sha256")
     .update(resetToken)
     .digest("hex");
 
-  this.resetPasswordExpiresAt = Date.now() + 15 * 60 * 1000;
+  this.resetPasswordExpiresAt = Date.now() + 15 * 60 * 1000; // 15 minutes
 
   return resetToken;
 };
