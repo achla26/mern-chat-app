@@ -7,6 +7,7 @@ import OtpVerify from "./pages/auth/OtpVerify";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import AuthLayout from "./layouts/AuthLayout"; 
+import Chat from "./pages/Chat";
 
 const router = createBrowserRouter([
   {
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
             index: true,
             element: <Home />,
           },
+          {
+            path: "/chat",
+            element: <Chat />,
+          }
           // Add other protected routes here
         ],
       },

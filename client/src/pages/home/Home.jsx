@@ -79,7 +79,11 @@ const Home = () => {
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-gray-900 text-gray-100">
-      {isSidebarOpen && (
+      
+
+      <div className="flex h-full">
+        <div>
+        {isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
@@ -92,8 +96,7 @@ const Home = () => {
       >
         {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
-
-      <div className="flex h-full">
+        </div>
         <Sidebar
           isOpen={isSidebarOpen}
           onClose={toggleSidebar}
