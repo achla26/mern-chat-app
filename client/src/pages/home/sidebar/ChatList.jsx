@@ -1,6 +1,6 @@
 import Spinner from "@/Spinner";
 import { formatTimestamp } from "@/utility/helper";
-import React, { memo, useEffect, useCallback } from "react";
+import React, { memo, useEffect, useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getUserMessagesThunk } from "@/redux/thunks/chat.thunk";
 import SidebarPlaceholder from "./SidebarPlaceholder";
@@ -14,14 +14,15 @@ const ChatList = memo(({ chats, chatListComponentLoading }) => {
 
   const onlineUsersSet = new Set(onlineUsers);
 
-  // Convert chats object to array if needed
-  const chatsArray =
-    chats && typeof chats === "object" && !Array.isArray(chats)
-      ? Object.values(chats)
-      : Array.isArray(chats)
-      ? chats
-      : [];
-
+  const chatsArray = useMemo(
+    () =>
+      chats && typeof chats === "object" && !Array.isArray(chats)
+        ? Object.values(chats)
+        : Array.isArray(chats)
+        ? chats
+        : [],
+    [chats]
+  ); 
   const fetchMessages = useCallback(
     (conversationId) => {
       dispatch(getUserMessagesThunk({ conversationId }));
@@ -43,13 +44,13 @@ const ChatList = memo(({ chats, chatListComponentLoading }) => {
     }
   }, [selectedChatId, fetchMessages]);
 
-  const generateAvatarUrl = (chat) => {
+  const generateAvatarUrl = useCallback((chat) => {
     const name = encodeURIComponent(chat.chatName || "Chat");
     return (
       chat.avatar ||
       `https://ui-avatars.com/api/?name=${name}&background=random`
     );
-  };
+  }, []);
 
   if (chatListComponentLoading) {
     return (
@@ -63,88 +64,52 @@ const ChatList = memo(({ chats, chatListComponentLoading }) => {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-4 text-gray-400">
         <svg
-          className="w-16 h-16 mb-4"
+          className="w-12 h-12 mb-4"
           fill="none"
           stroke="currentColor"
+          strokeWidth="2"
           viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
         >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
-            strokeWidth={1}
-            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-          />
+            d="M9.75 9.75h.008v.008h-.008v-.008zM14.25 9.75h.008v.008h-.008v-.008zM7.5 16.5h9m-7.5 3h6a6 6 0 100-12h-6a6 6 0 100 12z"
+          ></path>
         </svg>
-        <p className="text-lg">No conversations yet</p>
-        <p className="text-sm">Start a new chat to see it here</p>
+        <p>No chats available</p>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 overflow-y-auto" role="list">
-      {chatsArray.map((chat) => {
-        const otherParticipant = getOtherParticipant(chat);
-        const isOnline = otherParticipant
-          ? onlineUsersSet.has(otherParticipant)
-          : false;
-
-        const avatarUrl = generateAvatarUrl(chat);
-        const isSelected = selectedChatId === chat._id;
-
-        return (
-          <div
-            key={chat._id}
-            role="listitem"
-            aria-selected={isSelected}
-            className={`flex items-center p-4 cursor-pointer border-b border-gray-700 transition-colors ${
-              isSelected ? "bg-gray-800" : "hover:bg-gray-800"
-            }`}
-            onClick={() => handleUserClick(chat._id)}
-          >
-            <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0 mr-3">
-              <img
-                src={avatarUrl}
-                alt={`Avatar for ${chat.chatName}`}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                    chat.chatName || "U"
-                  )}&background=random`;
-                }}
-                loading="lazy"
-              />
-              {isOnline && (
-                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-800" />
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex justify-between items-center mb-1">
-                <h3 className="font-semibold truncate" title={chat.chatName}>
-                  {chat.chatName}
-                </h3>
-                <span className="text-xs text-gray-400 ml-2 flex-shrink-0">
-                  {formatTimestamp(chat.updatedAt || chat.createdAt)}
-                </span>
-              </div>
-              <p
-                className="text-sm text-gray-400 truncate"
-                title={chat.lastMessage}
-              >
-                {chat.lastMessage || "No messages yet"}
-              </p>
-            </div>
-            {chat.unreadCount > 0 && (
-              <span
-                className="ml-2 bg-blue-500 text-white rounded-full px-2 py-1 text-xs flex-shrink-0"
-                aria-label={`${chat.unreadCount} unread messages`}
-              >
-                {chat.unreadCount}
-              </span>
-            )}
+    <div className="flex-1 overflow-y-auto">
+      {chatsArray.map((chat) => (
+        <div
+          key={chat._id}
+          className={`p-4 flex items-center gap-4 cursor-pointer hover:bg-gray-800 ${
+            selectedChatId === chat._id ? "bg-gray-800" : ""
+          }`}
+          onClick={() => handleUserClick(chat._id)}
+        >
+          <img
+            src={generateAvatarUrl(chat)}
+            alt={chat.chatName || "Chat"}
+            className="w-12 h-12 rounded-full"
+          />
+          <div className="flex-1">
+            <p className="text-white font-medium">
+              {getOtherParticipant(chat.participants)?.name || chat.chatName}
+            </p>
+            <p className="text-sm text-gray-400 truncate">
+              {chat.lastMessage || "No messages yet"}
+            </p>
           </div>
-        );
-      })}
+          {onlineUsersSet.has(getOtherParticipant(chat.participants)?._id) && (
+            <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+          )}
+        </div>
+      ))}
     </div>
   );
 });

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, use } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Menu, X } from "lucide-react";
 import Sidebar from "./sidebar/Sidebar";
 import ChatArea from "./chat/ChatArea";
@@ -7,12 +7,12 @@ import {
   getUserChatsThunk,
   getUserMessagesThunk,
 } from "@/redux/thunks/chat.thunk";
-import { initializeSocket} from "@/redux/socketManager";  
+import { initializeSocket } from "@/redux/socketManager";
 import { logoutUserThunk } from "@/redux/thunks/auth.thunk";
 import { toast } from "react-hot-toast";
 import { useNavigation } from "../../hooks/navigation";
 
-function Home() {
+const Home = () => {
   const {
     chats,
     chatListComponentLoading,
@@ -24,12 +24,9 @@ function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const dispatch = useDispatch();
 
-   // Initialize socket on mount
-   useEffect(() => {
-    initializeSocket(dispatch); // Initialize socket
+  useEffect(() => {
+    initializeSocket(dispatch);
   }, [dispatch]);
- 
-  // logout functionality
 
   const logout = useCallback(async () => {
     try {
@@ -52,20 +49,29 @@ function Home() {
     fetchChats();
   }, [dispatch]);
 
+  useEffect(() => {
+    if (selectedChatId) {  
+      dispatch(getUserMessagesThunk({ conversationId: selectedChatId }));
+    }
+  }, [selectedChatId, dispatch]);
+
+ 
+
   const currentMessages = selectedChatId ? messages[selectedChatId] : [];
 
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (message.trim()) {
-      dispatch(
-        sendMessageThunk({
-          recieverId: selectedUser?._id,
-          message: msg,
-        })
-      );
-      setMessage("");
-    }
-  };
+  const handleSendMessage = useCallback(
+    (msg) => {
+      if (msg.trim()) {
+        dispatch(
+          getUserMessagesThunk({
+            recieverId: selectedChatId,
+            message: msg,
+          })
+        );
+      }
+    },
+    [dispatch, selectedChatId]
+  );
 
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen((prev) => !prev);
@@ -73,7 +79,6 @@ function Home() {
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-gray-900 text-gray-100">
-      {/* Overlay for mobile when sidebar is open */}
       {isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
@@ -81,7 +86,6 @@ function Home() {
         />
       )}
 
-      {/* Mobile Sidebar Toggle */}
       <button
         onClick={toggleSidebar}
         className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-gray-800 rounded-full hover:bg-gray-700"
@@ -97,9 +101,14 @@ function Home() {
           logout={logout}
           chatListComponentLoading={chatListComponentLoading}
         />
-        <ChatArea messages={currentMessages} chatAreaComponentLoading={chatAreaComponentLoading}/>
+        <ChatArea
+          messages={currentMessages}
+          chatAreaComponentLoading={chatAreaComponentLoading}
+          onSendMessage={handleSendMessage}
+        />
       </div>
     </div>
   );
-}
+};
+
 export default Home;
