@@ -1,48 +1,18 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback } from "react";
 import { getOtherParticipant } from "@/utility/helper";
-import { setSelectedChatId } from "@/redux/slices/chat.slice";
-import { useDispatch, useSelector } from "react-redux";
-import { getUserMessagesThunk } from "@/redux/thunks/chat.thunk";
+import { useSelector } from "react-redux";
 
-const ChatItem = ({ chat }) => {
-  const dispatch = useDispatch();
-
-  const { selectedChatId } = useSelector((state) => state.chat);
-
-  const fetchMessages = useCallback(
-    (conversationId) => {
-      dispatch(getUserMessagesThunk({ conversationId }));
-    },
-    [dispatch]
-  );
-
-  const handleUserClick = useCallback(
-    (conversationId) => {
-      dispatch(setSelectedChatId(conversationId));
-      fetchMessages(conversationId);
-    },
-    [dispatch, fetchMessages]
-  );
-
-  useEffect(() => {
-    if (selectedChatId) {
-      fetchMessages(selectedChatId);
-    }
-  }, [selectedChatId, fetchMessages]);
-
+const ChatItem = ({ chat, selectedChatId, handleUserClick }) => {
   const { onlineUsers } = useSelector((state) => state.socket);
-
   const onlineUsersSet = new Set(onlineUsers);
+
   const generateAvatarUrl = useCallback((chat) => {
     const name = encodeURIComponent(chat.chatName || "Chat");
-    return (
-      chat.avatar ||
-      `https://ui-avatars.com/api/?name=${name}&background=random`
-    );
+    return chat.avatar || `https://ui-avatars.com/api/?name=${name}&background=random`;
   }, []);
+
   return (
     <div
-      key={chat._id}
       className={`p-4 flex items-center gap-4 cursor-pointer hover:bg-gray-800 ${
         selectedChatId === chat._id ? "bg-gray-800" : ""
       }`}
@@ -67,4 +37,5 @@ const ChatItem = ({ chat }) => {
     </div>
   );
 };
+
 export default ChatItem;

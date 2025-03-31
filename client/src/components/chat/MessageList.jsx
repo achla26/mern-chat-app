@@ -4,8 +4,8 @@ import { useSelector } from "react-redux";
 import ChatAreaPlaceholder from "@/components/chat/ChatAreaPlaceholder";
 
 const MessageList = memo(({ messages, chatAreaComponentLoading }) => {
-  console.log(messages)
   const messageRef = useRef(null);
+  console.log(messages)
 
   useEffect(() => {
     if (messageRef.current) {
@@ -13,11 +13,15 @@ const MessageList = memo(({ messages, chatAreaComponentLoading }) => {
     }
   }, [messages]);
 
-  const messageArray = useMemo(() => {
-    return Array.isArray(messages)
-      ? messages
-      : messages?.data || messages?.messages || [];
-  }, [messages]);
+  const selectedChatId = useSelector((state) => state.chat.selectedChatId);
+
+const messageArray = useMemo(() => {
+  if (!messages || typeof messages !== "object") return [];
+  return Array.isArray(messages[selectedChatId]) ? messages[selectedChatId] : [];
+}, [messages, selectedChatId]);
+
+
+  console.log(messageArray)
 
   const currentUser = useSelector((state) => state.auth.user);
   const currentUserId = currentUser?.id;
@@ -29,7 +33,15 @@ const MessageList = memo(({ messages, chatAreaComponentLoading }) => {
       </div>
     );
   }
-  console.log(messageArray);
+
+  if (!Array.isArray(messageArray)) {
+    console.error("Expected messageArray to be an array, but got:", messageArray);
+    return (
+      <div className="flex justify-center items-center h-full">
+        <p className="text-gray-400">Failed to load messages</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4" ref={messageRef}>
