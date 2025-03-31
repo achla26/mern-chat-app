@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Menu, X } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
-import Sidebar from "@/components/Sidebar/Sidebar";
+// import Sidebar from "@/components/Sidebar/Sidebar";
 import ChatArea from "@/components/chat/ChatArea";
 import ChatList from "@/components/ChatList/ChatList";
 import ChatHeader from "@/components/ChatList/ChatListHeader";

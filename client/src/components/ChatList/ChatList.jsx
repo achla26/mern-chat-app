@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import ChatListPlaceholder from "@/components/Placeholders/ChatListPlaceholder";
 import { setSelectedChatId } from "@/redux/slices/chat.slice";
 
-const ChatList = memo(({ selectedChatId }) => {
+const ChatList = memo(({ selectedChatId , handleUserClick}) => {
   const dispatch = useDispatch();
 
   const { chats, chatListComponentLoading } = useSelector((state) => state.chat);
@@ -31,15 +31,7 @@ const ChatList = memo(({ selectedChatId }) => {
 
     fetchChats();
   }, [dispatch]);
-
-  // ✅ Ensure only one fetch per chat selection
-  const handleUserClick = useCallback(
-    (conversationId) => {
-      if (selectedChatId === conversationId) return; // Prevent duplicate fetches
-      dispatch(setSelectedChatId(conversationId)); // First, update selected chat
-    },
-    [dispatch, selectedChatId]
-  );
+ 
   
   if (chatListComponentLoading) {
     return <ChatListPlaceholder />;

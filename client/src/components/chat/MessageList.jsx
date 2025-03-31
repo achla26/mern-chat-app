@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import ChatAreaPlaceholder from "@/components/chat/ChatAreaPlaceholder";
 
 const MessageList = memo(({ messages, chatAreaComponentLoading }) => {
-  const messageRef = useRef(null); 
+  const messageRef = useRef(null);
 
   useEffect(() => {
     if (messageRef.current) {
@@ -14,12 +14,13 @@ const MessageList = memo(({ messages, chatAreaComponentLoading }) => {
 
   const selectedChatId = useSelector((state) => state.chat.selectedChatId);
 
-const messageArray = useMemo(() => {
-  if (!messages || typeof messages !== "object") return [];
-  return Array.isArray(messages[selectedChatId]) ? messages[selectedChatId] : [];
-}, [messages, selectedChatId]);
+  const messageArray = useMemo(() => {
+    if (!messages || typeof messages !== "object") return [];
+    return Array.isArray(messages[selectedChatId])
+      ? messages[selectedChatId]
+      : [];
+  }, [messages, selectedChatId]);
 
- 
   const currentUser = useSelector((state) => state.auth.user);
   const currentUserId = currentUser?.id;
 
@@ -31,7 +32,7 @@ const messageArray = useMemo(() => {
     );
   }
 
-  if (!Array.isArray(messageArray)) { 
+  if (!Array.isArray(messageArray)) {
     return (
       <div className="flex justify-center items-center h-full">
         <p className="text-gray-400">Failed to load messages</p>
