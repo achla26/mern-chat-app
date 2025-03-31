@@ -41,8 +41,7 @@ const Chat = () => {
   const handleSendMessage = useCallback(
     (msg) => {
       if (msg.trim() && selectedChatId) {
-        dispatch(getUserMessagesThunk({ recieverId: selectedChatId, message: msg }));
-        console.log("Message sent:", msg);
+        dispatch(getUserMessagesThunk({ recieverId: selectedChatId, message: msg })); 
       }
     },
     [dispatch, selectedChatId]

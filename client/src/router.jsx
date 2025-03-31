@@ -1,13 +1,12 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import ProtectedRoute from "./utility/auth/ProtectedRoute";
-import Login from "./pages/auth/Login";
-import Home from "./pages/home/Home";
+import Login from "./pages/auth/Login"; 
 import Register from "./pages/auth/Register";
 import OtpVerify from "./pages/auth/OtpVerify";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import AuthLayout from "./layouts/AuthLayout"; 
-import Chat from "./pages/Chat";
+import Chat from "./pages/Chat/Index";
 
 const router = createBrowserRouter([
   {
@@ -19,12 +18,8 @@ const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <Home />,
-          },
-          {
-            path: "/chat",
             element: <Chat />,
-          }
+          }, 
           // Add other protected routes here
         ],
       },
